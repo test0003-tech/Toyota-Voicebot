@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HyperX – Toyota Lead Qualification</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+<style>
+  :root{
+    --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+    --gold:#f5a623;--gold2:#e8920d;--gold3:#ffc85a;
+    --text:#f0ede8;--text2:#a09e9a;--text3:#6a6870;
+    --green:#22c55e;--red:#ef4444;--blue:#60a5fa;--orange:#fb923c;
+    --border:rgba(245,166,35,0.15);--border2:rgba(245,166,35,0.3);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden;}
+  
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:var(--gold);}
+  .nav-logo span{color:var(--text);font-weight:300;}
+  .nav-tabs{display:flex;gap:4px;}
+  .tab-btn{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;transition:all .2s;}
+  .tab-btn.active{background:var(--gold);color:#000;font-weight:600;}
+  .tab-btn:hover:not(.active){background:var(--bg3);color:var(--text);}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .live-badge{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+
+  /* PAGES */
+  .page{display:none;padding:24px 28px;}
+  .page.active{display:block;}
+
+  /* ===== PAGE 1: OVERVIEW ===== */
+  .hero{text-align:center;padding:36px 0 28px;}
+  .hero-tag{display:inline-block;background:rgba(245,166,35,0.12);border:1px solid var(--border2);color:var(--gold);border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;letter-spacing:.8px;margin-bottom:16px;}
+  .hero h1{font-size:38px;font-weight:800;line-height:1.2;margin-bottom:12px;}
+  .hero h1 span{color:var(--gold);}
+  .hero p{color:var(--text2);font-size:15px;max-width:580px;margin:0 auto 28px;}
+  .hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;}
+  .hstat{text-align:center;}
+  .hstat-num{font-size:28px;font-weight:800;color:var(--gold);}
+  .hstat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-top:2px;}
+
+  /* flow diagram */
+  .flow-section{margin:28px 0;}
+  .flow-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;}
+  .flow-row{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 0;}
+  .flow-node{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:130px;text-align:center;flex-shrink:0;}
+  .flow-node.gold{border-color:var(--gold2);background:rgba(245,166,35,0.08);}
+  .flow-node.green{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.07);}
+  .flow-node.red{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.07);}
+  .flow-node i{font-size:22px;margin-bottom:6px;display:block;}
+  .flow-node.gold i{color:var(--gold);}
+  .flow-node.green i{color:var(--green);}
+  .flow-node.red i{color:var(--red);}
+  .flow-node-title{font-size:12px;font-weight:700;color:var(--text);}
+  .flow-node-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+  .flow-arr{color:var(--text3);font-size:18px;margin:0 4px;flex-shrink:0;}
+  
+  .outcomes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:24px;}
+  .out-card{border-radius:10px;padding:16px;border:1px solid;}
+  .out-card.interested{border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.06);}
+  .out-card.callback{border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.06);}
+  .out-card.junk{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);}
+  .out-card-icon{font-size:20px;margin-bottom:8px;}
+  .out-card.interested .out-card-icon{color:var(--green);}
+  .out-card.callback .out-card-icon{color:var(--gold);}
+  .out-card.junk .out-card-icon{color:var(--red);}
+  .out-card-title{font-size:13px;font-weight:700;}
+  .out-card-desc{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4;}
+
+  /* ===== PAGE 2: LIVE PLATFORM ===== */
+  .platform-grid{display:grid;grid-template-columns:260px 1fr 200px;gap:16px;height:calc(100vh - 120px);min-height:500px;}
+  
+  /* Panel base */
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;}
+  .panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);}
+  .panel-badge{background:var(--gold);color:#000;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;}
+  .panel-body{flex:1;overflow-y:auto;padding:10px;}
+  .panel-body::-webkit-scrollbar{width:3px;}
+  .panel-body::-webkit-scrollbar-thumb{background:var(--border2);}
+
+  /* Aggregator leads */
+  .lead-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+  .lead-item:hover{border-color:var(--border2);}
+  .lead-item.new-lead{animation:slideIn .4s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
+  .lead-avatar{width:32px;height:32px;border-radius:50%;background:rgba(245,166,35,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0;}
+  .lead-info{flex:1;min-width:0;}
+  .lead-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lead-phone{font-size:10px;color:var(--text3);}
+  .lead-status{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .status-dot.calling{background:var(--gold);animation:pulse 1s infinite;}
+  .status-dot.interested{background:var(--green);}
+  .status-dot.junk{background:var(--red);}
+  .status-dot.waiting{background:var(--text3);}
+  .status-dot.callback{background:var(--orange);}
+  .status-dot.wa{background:var(--blue);}
+  .status-label{font-size:9px;color:var(--text3);text-align:right;}
+  .lead-pulse-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);animation:barPulse 2s linear infinite;opacity:0;}
+  .lead-item.calling .lead-pulse-bar{opacity:1;}
+  @keyframes barPulse{0%{width:0;}100%{width:100%;}}
+
+  /* Mid panel – call stream */
+  .mid-panel{display:flex;flex-direction:column;gap:12px;}
+  .call-counter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .counter-stats{display:flex;gap:24px;}
+  .cstat{text-align:center;}
+  .cstat-num{font-size:22px;font-weight:800;color:var(--gold);}
+  .cstat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+  .active-calls-label{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;}
+
+  .calls-grid{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+  .calls-grid::-webkit-scrollbar{width:3px;}
+  .calls-grid::-webkit-scrollbar-thumb{background:var(--border2);}
+  .call-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:all .3s;}
+  .call-card.active-call{border-color:rgba(245,166,35,0.4);}
+  .call-card.finished{opacity:.7;border-color:var(--border);}
+  .call-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .call-name{font-size:13px;font-weight:600;}
+  .call-status-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .badge-calling{background:rgba(245,166,35,0.15);color:var(--gold);border:1px solid rgba(245,166,35,0.3);}
+  .badge-connected{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+  .badge-interested{background:rgba(34,197,94,0.2);color:var(--green);border:1px solid rgba(34,197,94,0.4);}
+  .badge-callback{background:rgba(251,146,60,0.15);color:var(--orange);border:1px solid rgba(251,146,60,0.3);}
+  .badge-notpicked{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25);}
+  .badge-junk{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.25);}
+  .badge-wa{background:rgba(96,165,250,0.15);color:var(--blue);border:1px solid rgba(96,165,250,0.3);}
+  
+  .script-box{background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--text2);line-height:1.5;border-left:2px solid var(--border2);min-height:32px;}
+  .script-box.typing::after{content:'|';animation:blink .6s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+  .script-speaker{font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:.5px;margin-bottom:3px;}
+  .script-speaker.bot{color:var(--gold);}
+  .script-speaker.customer{color:var(--green);}
+  .call-meta{display:flex;gap:12px;margin-top:6px;}
+  .call-meta-item{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;}
+  .attempt-dots{display:flex;gap:3px;}
+  .adot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+  .adot.done{background:var(--gold);}
+  .adot.current{background:var(--gold);animation:pulse 1s infinite;}
+
+  /* Timer bar */
+  .timer-bar-wrap{height:2px;background:var(--bg3);border-radius:1px;margin-top:6px;}
+  .timer-bar{height:100%;background:var(--gold);border-radius:1px;transition:width 1s linear;}
+
+  /* Right – CRM + Junk */
+  .right-col{display:flex;flex-direction:column;gap:12px;}
+  .junk-bin{background:var(--bg2);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px;text-align:center;}
+  .junk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--red);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:5px;}
+  .junk-count{font-size:28px;font-weight:800;color:var(--red);}
+  .junk-sub{font-size:9px;color:var(--text3);}
+  .junk-items{margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:80px;overflow-y:auto;}
+  .junk-chip{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:3px 6px;font-size:9px;color:var(--red);display:flex;align-items:center;gap:4px;}
+  
+  .crm-panel{flex:1;background:var(--bg2);border:1px solid rgba(34,197,94,0.25);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+  .crm-header{background:rgba(34,197,94,0.08);padding:12px 14px;border-bottom:1px solid rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:space-between;}
+  .crm-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);}
+  .crm-count{font-size:20px;font-weight:800;color:var(--green);}
+  .crm-sub{font-size:9px;color:var(--text3);}
+  .crm-list{flex:1;overflow-y:auto;padding:8px;}
+  .crm-list::-webkit-scrollbar{width:3px;}
+  .crm-list::-webkit-scrollbar-thumb{background:rgba(34,197,94,0.2);}
+  .crm-lead{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:6px;padding:7px 9px;margin-bottom:5px;font-size:11px;}
+  .crm-lead.new-crm{animation:slideIn .4s ease;}
+  .crm-lead-name{font-weight:600;color:var(--text);}
+  .crm-lead-time{font-size:9px;color:var(--text3);}
+  .crm-lead-tag{display:inline-block;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600;margin-top:2px;}
+
+  /* HyperX central counter */
+  .hyperx-strip{background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(245,166,35,0.04));border:1px solid rgba(245,166,35,0.25);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .hx-label{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;}
+  .hx-metrics{display:flex;gap:20px;}
+  .hx-metric{text-align:center;}
+  .hx-num{font-size:18px;font-weight:800;color:var(--gold);}
+  .hx-sub{font-size:9px;color:var(--text3);text-transform:uppercase;}
+
+  /* ===== PAGE 3: ANALYTICS ===== */
+  .analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);}
+  .kpi-num{font-size:26px;font-weight:800;margin:4px 0 2px;}
+  .kpi-num.gold{color:var(--gold);}
+  .kpi-num.green{color:var(--green);}
+  .kpi-num.red{color:var(--red);}
+  .kpi-num.blue{color:var(--blue);}
+  .kpi-change{font-size:11px;color:var(--green);}
+  
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .chart-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+  
+  /* Bar chart */
+  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s;}
+  .bar-label{font-size:9px;color:var(--text3);}
+  .bar-val{font-size:9px;font-weight:600;color:var(--text2);}
+
+  /* Donut */
+  .donut-wrap{display:flex;align-items:center;gap:20px;}
+  .donut-svg{flex-shrink:0;}
+  .donut-legend{display:flex;flex-direction:column;gap:8px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;}
+  .legend-dot{width:8px;height:8px;border-radius:50%;}
+  
+  /* Funnel */
+  .funnel{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+  .funnel-step{display:flex;align-items:center;gap:10px;}
+  .funnel-bar-wrap{flex:1;background:var(--bg3);border-radius:3px;height:22px;overflow:hidden;}
+  .funnel-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:#000;transition:width .8s;}
+  .funnel-label{font-size:10px;color:var(--text2);min-width:90px;}
+  .funnel-count{font-size:10px;color:var(--text3);min-width:28px;text-align:right;}
+
+  /* Retry timeline */
+  .retry-timeline{display:flex;align-items:center;gap:0;margin-top:8px;overflow-x:auto;}
+  .rt-step{flex-shrink:0;text-align:center;}
+  .rt-circle{width:36px;height:36px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;font-weight:700;}
+  .rt-circle.c1{border-color:var(--gold);background:rgba(245,166,35,0.15);color:var(--gold);}
+  .rt-circle.c2{border-color:var(--orange);background:rgba(251,146,60,0.15);color:var(--orange);}
+  .rt-circle.c3{border-color:var(--blue);background:rgba(96,165,250,0.12);color:var(--blue);}
+  .rt-circle.c4{border-color:var(--red);background:rgba(239,68,68,0.1);color:var(--red);}
+  .rt-label{font-size:9px;color:var(--text3);}
+  .rt-time{font-size:9px;font-weight:600;color:var(--text2);}
+  .rt-line{height:2px;width:40px;background:var(--border);flex-shrink:0;margin:0 2px;position:relative;top:-14px;}
+
+  /* Download */
+  .dl-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;}
+  .dl-btn:hover{background:var(--gold3);}
+
+  /* scrollbar global */
+  ::-webkit-scrollbar{width:4px;height:4px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);}
+  
+  @media print{nav{display:none;} .page{display:block !important; page-break-after:always;}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <i class="ti ti-bolt" style="color:var(--gold);font-size:22px"></i>
+    HyperX <span style="margin-left:4px">× Toyota</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('overview',this)">Overview</button>
+    <button class="tab-btn" onclick="showPage('platform',this)">Live Platform</button>
+    <button class="tab-btn" onclick="showPage('analytics',this)">Analytics</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-badge"><span class="live-dot"></span> LIVE DEMO</div>
+    <button class="dl-btn" onclick="downloadPresentation()"><i class="ti ti-download"></i> Export</button>
+  </div>
+</nav>
+
+<!-- ========== PAGE 1: OVERVIEW ========== -->
+<div id="page-overview" class="page active">
+  <div class="hero">
+    <div class="hero-tag">TOYOTA × HYPERX LEAD QUALIFICATION ENGINE</div>
+    <h1>Convert Aggregator Leads<br/>into <span>Qualified Buyers</span></h1>
+    <p>HyperX uses an AI voice bot to instantly engage every incoming lead — running simultaneous calls, qualifying interest, and routing hot prospects directly into Toyota CRM.</p>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-num">~10s</div><div class="hstat-label">Avg call connect time</div></div>
+      <div class="hstat"><div class="hstat-num">30 hrs</div><div class="hstat-label">Total retry window</div></div>
+      <div class="hstat"><div class="hstat-num">4 +WA</div><div class="hstat-label">Touch attempts</div></div>
+      <div class="hstat"><div class="hstat-num">100%</div><div class="hstat-label">Leads auto-classified</div></div>
+    </div>
+  </div>
+
+  <div class="flow-section">
+    <div class="flow-title">End-to-End Flow</div>
+    <div class="flow-row">
+      <div class="flow-node gold">
+        <i class="ti ti-database-import"></i>
+        <div class="flow-node-title">Aggregator</div>
+        <div class="flow-node-sub">Leads stream in</div>
+      </div>
+      <span class="flow-arr">›</span>
+      <div class="flow-node gold">
+        <i class="ti ti-bolt"></i>
+        <div class="flow-node-title">HyperX Engine</div>
+        <div class="flow-node-sub">AI triggers calls</div>
+      </div>
+      <span class="flow-arr">›</span>
+      <div class="flow-node">
+        <i class="ti ti-phone" style="color:var(--gold)"></i>
+        <div class="flow-node-title">Voice Bot</div>
+        <div class="flow-node-sub">Simultaneous calls</div>
+      </div>
+      <span class="flow-arr">›</span>
+      <div class="flow-node">
+        <i class="ti ti-message-2" style="color:var(--blue)"></i>
+        <div class="flow-node-title">Qualification</div>
+        <div class="flow-node-sub">AI chat + retry logic</div>
+      </div>
+      <span class="flow-arr">›</span>
+      <div class="flow-node green">
+        <i class="ti ti-check"></i>
+        <div class="flow-node-title">Toyota CRM</div>
+        <div class="flow-node-sub">Interested leads only</div>
+      </div>
+      <span class="flow-arr">›</span>
+      <div class="flow-node red">
+        <i class="ti ti-trash"></i>
+        <div class="flow-node-title">Junk Bin</div>
+        <div class="flow-node-sub">Not interested</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-section">
+    <div class="flow-title">Call Outcomes</div>
+    <div class="outcomes">
+      <div class="out-card interested">
+        <div class="out-card-icon"><i class="ti ti-thumb-up"></i></div>
+        <div class="out-card-title">Customer Says YES</div>
+        <div class="out-card-desc">WhatsApp confirmation sent: "Our Toyota senior will get in touch." Lead forwarded to Toyota CRM immediately.</div>
+      </div>
+      <div class="out-card callback">
+        <div class="out-card-icon"><i class="ti ti-clock"></i></div>
+        <div class="out-card-title">Call Back / Not Picked</div>
+        <div class="out-card-desc">Retry at +2hr → +4hr → +24hr. Then WhatsApp. If no YES within 48hr of WA → mark as Junk.</div>
+      </div>
+      <div class="out-card junk">
+        <div class="out-card-icon"><i class="ti ti-x"></i></div>
+        <div class="out-card-title">Customer Says NO</div>
+        <div class="out-card-desc">Immediately removed from call list. Marked as Junk in system. No further outreach.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-section">
+    <div class="flow-title">Retry & Engagement Timeline (Total Window: 30 Hours)</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+      <div class="retry-timeline">
+        <div class="rt-step">
+          <div class="rt-circle c1">1</div>
+          <div class="rt-time">T+0</div>
+          <div class="rt-label">1st Call</div>
+        </div>
+        <div class="rt-line"></div>
+        <div class="rt-step">
+          <div class="rt-circle c1">2</div>
+          <div class="rt-time">T+2hr</div>
+          <div class="rt-label">2nd Call</div>
+        </div>
+        <div class="rt-line"></div>
+        <div class="rt-step">
+          <div class="rt-circle c2">3</div>
+          <div class="rt-time">T+6hr</div>
+          <div class="rt-label">3rd Call</div>
+        </div>
+        <div class="rt-line"></div>
+        <div class="rt-step">
+          <div class="rt-circle c2">4</div>
+          <div class="rt-time">T+30hr</div>
+          <div class="rt-label">4th Call</div>
+        </div>
+        <div class="rt-line"></div>
+        <div class="rt-step">
+          <div class="rt-circle c3">WA</div>
+          <div class="rt-time">Post 4th</div>
+          <div class="rt-label">WhatsApp</div>
+        </div>
+        <div class="rt-line"></div>
+        <div class="rt-step">
+          <div class="rt-circle c4">✕</div>
+          <div class="rt-time">+48hr</div>
+          <div class="rt-label">→ Junk</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:14px;line-height:1.7">
+        After 4th call attempt — WhatsApp message sent asking: <strong style="color:var(--text)">"Are you interested in the Toyota offer? Reply YES or NO."</strong><br/>
+        YES → Lead routed to Toyota CRM &nbsp;|&nbsp; NO / No reply within 48hr → Marked as Junk
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 2: LIVE PLATFORM ========== -->
+<div id="page-platform" class="page">
+  <div style="display:flex;flex-direction:column;gap:12px;height:calc(100vh - 100px);">
+    <!-- Top HyperX strip -->
+    <div class="hyperx-strip">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <i class="ti ti-bolt" style="font-size:22px;color:var(--gold)"></i>
+        <div class="hx-label">HyperX Engine</div>
+      </div>
+      <div class="hx-metrics">
+        <div class="hx-metric"><div class="hx-num" id="hx-active">0</div><div class="hx-sub">Active Calls</div></div>
+        <div class="hx-metric"><div class="hx-num" id="hx-total">0</div><div class="hx-sub">Total Calls</div></div>
+        <div class="hx-metric"><div class="hx-num" id="hx-interested">0</div><div class="hx-sub" style="color:var(--green)">Interested</div></div>
+        <div class="hx-metric"><div class="hx-num" id="hx-junk">0</div><div class="hx-sub" style="color:var(--red)">Junk</div></div>
+        <div class="hx-metric"><div class="hx-num" id="hx-rate">0%</div><div class="hx-sub">Conv. Rate</div></div>
+      </div>
+      <button onclick="toggleSim()" id="sim-btn" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-player-play" id="sim-icon"></i> Start Simulation
+      </button>
+    </div>
+
+    <div class="platform-grid" style="flex:1;height:auto;">
+      <!-- LEFT: Aggregator -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><i class="ti ti-database-import" style="font-size:13px;margin-right:4px"></i>Aggregator</div>
+          <span class="panel-badge" id="agg-badge">0</span>
+        </div>
+        <div class="panel-body" id="agg-list"></div>
+      </div>
+
+      <!-- MID: Call Stream -->
+      <div class="mid-panel">
+        <div class="calls-grid" id="calls-grid" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <!-- RIGHT: CRM + Junk -->
+      <div class="right-col">
+        <div class="junk-bin">
+          <div class="junk-title"><i class="ti ti-trash" style="font-size:13px"></i> Junk Bin</div>
+          <div class="junk-count" id="junk-count">0</div>
+          <div class="junk-sub">disqualified leads</div>
+          <div class="junk-items" id="junk-list"></div>
+        </div>
+        <div class="crm-panel">
+          <div class="crm-header">
+            <div>
+              <div class="crm-title"><i class="ti ti-car" style="font-size:12px;margin-right:4px"></i>Toyota CRM</div>
+              <div class="crm-sub">Qualified Leads</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="crm-count" id="crm-count">0</div>
+              <div class="crm-sub">interested</div>
+            </div>
+          </div>
+          <div class="crm-list" id="crm-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 3: ANALYTICS ========== -->
+<div id="page-analytics" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <div>
+      <div style="font-size:20px;font-weight:800;">Campaign Analytics</div>
+      <div style="font-size:12px;color:var(--text3);">Toyota Lead Qualification — HyperX Platform</div>
+    </div>
+    <button class="dl-btn" onclick="downloadPresentation()"><i class="ti ti-download"></i> Download Report</button>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Leads</div>
+      <div class="kpi-num gold" id="kpi-total">0</div>
+      <div class="kpi-change">↑ from aggregator</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Qualified (CRM)</div>
+      <div class="kpi-num green" id="kpi-crm">0</div>
+      <div class="kpi-change" id="kpi-conv-rate">0% conversion</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Junk / Disqualified</div>
+      <div class="kpi-num red" id="kpi-junk">0</div>
+      <div style="font-size:11px;color:var(--text3);" id="kpi-junk-pct">0% of total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">In Progress</div>
+      <div class="kpi-num blue" id="kpi-active">0</div>
+      <div style="font-size:11px;color:var(--text3);">being worked</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Lead Disposition Funnel</div>
+      <div class="funnel" id="funnel-chart">
+        <div class="funnel-step">
+          <div class="funnel-label">Total Leads</div>
+          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-total" style="width:100%;background:var(--gold);">0</div></div>
+          <div class="funnel-count" id="fc-total">0</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">Calls Connected</div>
+          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-connected" style="width:70%;background:#e8920d;">0</div></div>
+          <div class="funnel-count" id="fc-connected">0</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">Interested (YES)</div>
+          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-yes" style="width:40%;background:#22c55e;">0</div></div>
+          <div class="funnel-count" id="fc-yes">0</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">In Toyota CRM</div>
+          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-crm" style="width:35%;background:#16a34a;">0</div></div>
+          <div class="funnel-count" id="fc-crm">0</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">Junk / No Interest</div>
+          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-junk2" style="width:25%;background:#ef4444;">0</div></div>
+          <div class="funnel-count" id="fc-junk2">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Outcome Distribution</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="40" fill="none" stroke="var(--bg3)" stroke-width="18"/>
+          <circle id="d-interested" cx="55" cy="55" r="40" fill="none" stroke="var(--green)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+          <circle id="d-junk" cx="55" cy="55" r="40" fill="none" stroke="var(--red)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+          <circle id="d-active" cx="55" cy="55" r="40" fill="none" stroke="var(--blue)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+          <text x="55" y="58" text-anchor="middle" font-size="14" font-weight="800" fill="var(--gold)" id="d-pct">0%</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span id="dl-interested">Interested (0)</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span id="dl-junk">Junk (0)</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span id="dl-active">In Progress (0)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:16px;">
+    <div class="chart-title">Call Volume by Hour</div>
+    <div class="bar-chart" id="bar-chart">
+      <!-- generated by JS -->
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Retry Attempt Success Rate</div>
+    <div style="display:flex;gap:16px;margin-top:4px;">
+      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">1st Attempt</div>
+        <div style="font-size:20px;font-weight:800;color:var(--gold);" id="ar-1">—</div>
+        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">2nd (+2hr)</div>
+        <div style="font-size:20px;font-weight:800;color:var(--orange);" id="ar-2">—</div>
+        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">3rd (+6hr)</div>
+        <div style="font-size:20px;font-weight:800;color:var(--blue);" id="ar-3">—</div>
+        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">4th (+30hr)</div>
+        <div style="font-size:20px;font-weight:800;color:var(--red);" id="ar-4">—</div>
+        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">WA Response</div>
+        <div style="font-size:20px;font-weight:800;color:var(--green);" id="ar-wa">—</div>
+        <div style="font-size:9px;color:var(--text3)">response rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const NAMES = ['Rahul Sharma','Priya Nair','Amit Verma','Sunita Rao','Kiran Patel','Deepak Singh','Meera Iyer','Suresh Kumar','Anita Joshi','Vikram Das','Pooja Menon','Rajan Pillai','Neha Gupta','Anil Bose','Kavya Reddy','Mohan Tiwari','Divya Srinivas','Sanjay Mehta','Lata Choudhary','Ravi Nambiar'];
+const PHONES = ['98××× 12345','87××× 54321','76××× 98765','90××× 11223','83××× 44556','72××× 77889','99××× 00112','88××× 33445','77××× 66778','91××× 99001'];
+const SCRIPTS = {
+  bot_greet: ['Namaste! Am I speaking with {name}? This is Aria calling from Toyota. We noticed your interest in the new Toyota Innova Hycross. May I take 2 minutes of your time?','Hello {name}! This is Aria, your Toyota AI assistant. You recently enquired about our vehicles. Are you still interested?'],
+  cust_yes: ['Yes, I am interested. Can you tell me more?','Sure, please go ahead.','Yes yes, I was waiting for this call!'],
+  bot_qualify: ['Wonderful! The new Toyota Innova Hycross starts at ₹19.99L. Are you looking for a personal or family vehicle?','Excellent! We have exciting exchange offers this month. Is this your first Toyota?'],
+  cust_details: ['It would be for family use.','I am upgrading from a Honda City.','My budget is around 22 lakhs.'],
+  bot_close_yes: ['Perfect! I am noting you as Interested. Our senior Toyota executive will connect with you on WhatsApp shortly. Thank you, {name}! Have a great day!'],
+  bot_callback: ['No problem at all! I will schedule a call back at your convenience. Have a great day!'],
+  bot_no: ['I completely understand. I will remove you from our calling list. Thank you for your time, {name}. Have a wonderful day!'],
+  cust_no: ['No, I am not interested right now.','Please don\'t call again.','I already bought a car.'],
+  cust_cb: ['Can you call after 2 hours?','Not a good time, please call later.','I am in a meeting.'],
+};
+
+// ===================== STATE =====================
+let simRunning=false, simInterval=null;
+let leads=[], crmLeads=[], junkLeads=[];
+let totalCalls=0, activeCalls=0, interestedCount=0, junkCount=0;
+let hourlyData=Array(8).fill(0);
+let nameIdx=0;
+
+// ===================== SIM =====================
+function toggleSim(){
+  simRunning=!simRunning;
+  document.getElementById('sim-btn').innerHTML=simRunning?'<i class="ti ti-player-pause"></i> Pause':'<i class="ti ti-player-play"></i> Start Simulation';
+  if(simRunning) runSim(); else {clearTimeout(simInterval);}
+}
+
+function runSim(){
+  if(!simRunning) return;
+  addNewLead();
+  simInterval=setTimeout(runSim, 2800+Math.random()*2000);
+}
+
+function randName(){return NAMES[nameIdx++%NAMES.length];}
+function randPhone(){return PHONES[Math.floor(Math.random()*PHONES.length)];}
+function randScript(key,name){const a=SCRIPTS[key];return a[Math.floor(Math.random()*a.length)].replace('{name}',name.split(' ')[0]);}
+
+function addNewLead(){
+  const name=randName(), phone=randPhone();
+  const id='lead-'+Date.now()+Math.random();
+  const outcome=Math.random()<0.35?'interested':Math.random()<0.5?'callback':Math.random()<0.5?'junk':'notpicked';
+  const lead={id,name,phone,outcome,attempt:1,status:'calling'};
+  leads.push(lead);
+  renderAgg();
+  totalCalls++;
+  activeCalls++;
+  hourlyData[Math.floor(Math.random()*8)]++;
+  renderCallCard(lead);
+  updateCounters();
+  // simulate call duration
+  const dur=5000+Math.random()*6000;
+  setTimeout(()=>finishCall(lead,dur),dur);
+}
+
+function finishCall(lead,dur){
+  activeCalls=Math.max(0,activeCalls-1);
+  if(lead.outcome==='interested'){
+    lead.status='interested'; interestedCount++;
+    addToCRM(lead);
+  } else if(lead.outcome==='junk'){
+    lead.status='junk'; junkCount++;
+    addToJunk(lead);
+  } else if(lead.outcome==='callback'){
+    lead.status='callback';
+  } else {
+    lead.status='notpicked';
+  }
+  renderAgg();
+  updateCardStatus(lead);
+  updateCounters();
+  updateAnalytics();
+}
+
+function addToCRM(lead){
+  crmLeads.unshift(lead);
+  const el=document.createElement('div');
+  el.className='crm-lead new-crm';
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML=`<div class="crm-lead-name">${lead.name}</div><div class="crm-lead-time">${now} · ${lead.phone}</div><span class="crm-lead-tag">✓ Interested</span>`;
+  document.getElementById('crm-list').prepend(el);
+  document.getElementById('crm-count').textContent=crmLeads.length;
+  document.getElementById('hx-interested').textContent=interestedCount;
+}
+
+function addToJunk(lead){
+  junkLeads.unshift(lead);
+  const el=document.createElement('div');
+  el.className='junk-chip';
+  el.innerHTML=`<i class="ti ti-x" style="font-size:9px"></i>${lead.name.split(' ')[0]}`;
+  document.getElementById('junk-list').prepend(el);
+  document.getElementById('junk-count').textContent=junkLeads.length;
+  document.getElementById('hx-junk').textContent=junkCount;
+}
+
+// ===================== RENDER AGG =====================
+function renderAgg(){
+  const list=document.getElementById('agg-list');
+  list.innerHTML='';
+  document.getElementById('agg-badge').textContent=leads.length;
+  [...leads].reverse().slice(0,20).forEach(l=>{
+    const dotClass=l.status==='calling'?'calling':l.status==='interested'?'interested':l.status==='junk'?'junk':l.status==='callback'?'callback':l.status==='notpicked'?'wa':'waiting';
+    const statusTxt={'calling':'Calling…','interested':'Interested','junk':'Junk','callback':'Callback','notpicked':'No Pick'}[l.status]||l.status;
+    const div=document.createElement('div');
+    div.className=`lead-item ${l.status==='calling'?'new-lead':''}`;
+    div.innerHTML=`
+      <div class="lead-avatar">${l.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      <div class="lead-info"><div class="lead-name">${l.name}</div><div class="lead-phone">${l.phone}</div></div>
+      <div class="lead-status"><div class="status-dot ${dotClass}"></div><div class="status-label">${statusTxt}</div></div>
+      <div class="lead-pulse-bar"></div>`;
+    list.appendChild(div);
+  });
+}
+
+// ===================== CALL CARDS =====================
+function renderCallCard(lead){
+  const grid=document.getElementById('calls-grid');
+  const card=document.createElement('div');
+  card.id='card-'+lead.id;
+  card.className='call-card active-call';
+  const atDots=`<div class="attempt-dots">${[1,2,3,4].map(i=>`<div class="adot ${i<lead.attempt?'done':i===lead.attempt?'current':''}"></div>`).join('')}</div>`;
+  card.innerHTML=`
+    <div class="call-card-top">
+      <div class="call-name">${lead.name}</div>
+      <span class="call-status-badge badge-calling">● Calling</span>
+    </div>
+    <div class="script-box" id="script-${lead.id}">
+      <div class="script-speaker bot">HyperX Bot</div>
+      <div id="script-text-${lead.id}" class="typing">${randScript('bot_greet',lead.name)}</div>
+    </div>
+    <div class="call-meta">
+      <div class="call-meta-item"><i class="ti ti-clock" style="font-size:10px"></i> Attempt ${lead.attempt}/4</div>
+      ${atDots}
+      <div class="call-meta-item" style="margin-left:auto"><i class="ti ti-phone" style="font-size:10px"></i> ${lead.phone}</div>
+    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="tbar-${lead.id}" style="width:0%"></div></div>`;
+  grid.prepend(card);
+  // animate timer bar
+  let pct=0;
+  const ti=setInterval(()=>{pct+=2;document.getElementById('tbar-'+lead.id)&&(document.getElementById('tbar-'+lead.id).style.width=Math.min(pct,100)+'%');if(pct>=100)clearInterval(ti);},100);
+  // typewriter
+  setTimeout(()=>typeScript(lead,'cust_yes',false,lead.id),2000);
+}
+
+function typeScript(lead,key,isBot,cardId){
+  const el=document.getElementById('script-text-'+cardId);
+  if(!el) return;
+  const parent=el.parentElement;
+  if(parent){parent.querySelector('.script-speaker').textContent=isBot?'HyperX Bot':'Customer';parent.querySelector('.script-speaker').className='script-speaker '+(isBot?'bot':'customer');}
+  const text=randScript(key,lead.name);
+  el.textContent=''; el.classList.add('typing');
+  let i=0;
+  const ti=setInterval(()=>{el.textContent+=text[i]||'';i++;if(i>=text.length){el.classList.remove('typing');clearInterval(ti);}},28);
+}
+
+function updateCardStatus(lead){
+  const card=document.getElementById('card-'+lead.id);
+  if(!card) return;
+  card.className='call-card finished';
+  const badge=card.querySelector('.call-status-badge');
+  if(!badge) return;
+  const map={interested:['badge-interested','✓ Interested'],junk:['badge-junk','✕ Not Interested'],callback:['badge-callback','↻ Callback'],notpicked:['badge-notpicked','No Answer']};
+  const [cls,lbl]=map[lead.status]||['badge-notpicked','Done'];
+  badge.className='call-status-badge '+cls; badge.textContent=lbl;
+  // script final line
+  setTimeout(()=>{
+    if(lead.outcome==='interested') typeScript(lead,'bot_close_yes',true,lead.id);
+    else if(lead.outcome==='junk') typeScript(lead,'bot_no',true,lead.id);
+    else typeScript(lead,'bot_callback',true,lead.id);
+  },300);
+}
+
+// ===================== COUNTERS =====================
+function updateCounters(){
+  document.getElementById('hx-active').textContent=activeCalls;
+  document.getElementById('hx-total').textContent=totalCalls;
+  const rate=totalCalls>0?Math.round((interestedCount/totalCalls)*100)+'%':'0%';
+  document.getElementById('hx-rate').textContent=rate;
+}
+
+// ===================== ANALYTICS =====================
+function updateAnalytics(){
+  const T=leads.length, C=crmLeads.length, J=junkLeads.length, A=activeCalls;
+  const connected=Math.round(T*0.7), yes=C;
+  document.getElementById('kpi-total').textContent=T;
+  document.getElementById('kpi-crm').textContent=C;
+  document.getElementById('kpi-junk').textContent=J;
+  document.getElementById('kpi-active').textContent=A;
+  const conv=T>0?Math.round((C/T)*100):0;
+  document.getElementById('kpi-conv-rate').textContent=conv+'% conversion';
+  document.getElementById('kpi-junk-pct').textContent=(T>0?Math.round((J/T)*100):0)+'% of total';
+  // funnel
+  const pct=n=>T>0?Math.round((n/T)*100):0;
+  setFunnel('total',T,100);
+  setFunnel('connected',connected,pct(connected));
+  setFunnel('yes',yes,pct(yes));
+  setFunnel('crm',C,pct(C));
+  setFunnel('junk2',J,pct(J));
+  // donut
+  const circ=251;
+  const gi=T>0?C/T:0, gj=T>0?J/T:0, ga=T>0?A/T:0;
+  setDonutArc('d-interested',gi,0,circ);
+  setDonutArc('d-junk',gj,gi,circ);
+  setDonutArc('d-active',ga,gi+gj,circ);
+  document.getElementById('d-pct').textContent=(T>0?Math.round((C/T)*100):0)+'%';
+  document.getElementById('dl-interested').textContent=`Interested (${C})`;
+  document.getElementById('dl-junk').textContent=`Junk (${J})`;
+  document.getElementById('dl-active').textContent=`In Progress (${A})`;
+  // bars
+  renderBars();
+  // attempt rates (simulated)
+  if(T>0){
+    document.getElementById('ar-1').textContent=Math.round(55+Math.random()*10)+'%';
+    document.getElementById('ar-2').textContent=Math.round(40+Math.random()*10)+'%';
+    document.getElementById('ar-3').textContent=Math.round(28+Math.random()*8)+'%';
+    document.getElementById('ar-4').textContent=Math.round(18+Math.random()*7)+'%';
+    document.getElementById('ar-wa').textContent=Math.round(22+Math.random()*10)+'%';
+  }
+}
+
+function setFunnel(key,val,pct){
+  const fill=document.getElementById('f-'+key);
+  const cnt=document.getElementById('fc-'+key);
+  if(fill){fill.style.width=Math.max(pct,2)+'%';fill.textContent=val>0?val:'';}
+  if(cnt) cnt.textContent=val;
+}
+
+function setDonutArc(id,frac,offset,circ){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const dash=Math.round(frac*circ);
+  const off=Math.round(offset*circ);
+  el.setAttribute('stroke-dasharray',dash+' '+(circ-dash));
+  el.setAttribute('stroke-dashoffset',63-off);
+}
+
+function renderBars(){
+  const bc=document.getElementById('bar-chart');
+  bc.innerHTML='';
+  const max=Math.max(...hourlyData,1);
+  const hours=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm'];
+  hourlyData.forEach((v,i)=>{
+    const h=Math.round((v/max)*100);
+    bc.innerHTML+=`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${h}%;background:var(--gold);opacity:${0.5+i*0.07}"></div><div class="bar-label">${hours[i]}</div></div>`;
+  });
+}
+
+// ===================== PAGES =====================
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='analytics') updateAnalytics();
+}
+
+// ===================== DOWNLOAD =====================
+function downloadPresentation(){
+  const html=document.documentElement.outerHTML;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='HyperX_Toyota_Pitch.html';
+  a.click();
+}
+
+// Init bars
+renderBars();
+</script>
+</body>
+</html>

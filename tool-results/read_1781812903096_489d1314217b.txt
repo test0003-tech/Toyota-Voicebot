@@ -1,0 +1,842 @@
+     1→<!DOCTYPE html>
+     2→<html lang="en">
+     3→<head>
+     4→<meta charset="UTF-8"/>
+     5→<meta name="viewport" content="width=device-width,initial-scale=1"/>
+     6→<title>HyperX – Toyota Lead Qualification</title>
+     7→<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+     8→<style>
+     9→  :root{
+    10→    --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+    11→    --gold:#f5a623;--gold2:#e8920d;--gold3:#ffc85a;
+    12→    --text:#f0ede8;--text2:#a09e9a;--text3:#6a6870;
+    13→    --green:#22c55e;--red:#ef4444;--blue:#60a5fa;--orange:#fb923c;
+    14→    --border:rgba(245,166,35,0.15);--border2:rgba(245,166,35,0.3);
+    15→  }
+    16→  *{box-sizing:border-box;margin:0;padding:0;}
+    17→  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden;}
+    18→  
+    19→  /* NAV */
+    20→  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    21→  .nav-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:var(--gold);}
+    22→  .nav-logo span{color:var(--text);font-weight:300;}
+    23→  .nav-tabs{display:flex;gap:4px;}
+    24→  .tab-btn{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;transition:all .2s;}
+    25→  .tab-btn.active{background:var(--gold);color:#000;font-weight:600;}
+    26→  .tab-btn:hover:not(.active){background:var(--bg3);color:var(--text);}
+    27→  .nav-right{display:flex;align-items:center;gap:10px;}
+    28→  .live-badge{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;}
+    29→  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+    30→  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+    31→
+    32→  /* PAGES */
+    33→  .page{display:none;padding:24px 28px;}
+    34→  .page.active{display:block;}
+    35→
+    36→  /* ===== PAGE 1: OVERVIEW ===== */
+    37→  .hero{text-align:center;padding:36px 0 28px;}
+    38→  .hero-tag{display:inline-block;background:rgba(245,166,35,0.12);border:1px solid var(--border2);color:var(--gold);border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;letter-spacing:.8px;margin-bottom:16px;}
+    39→  .hero h1{font-size:38px;font-weight:800;line-height:1.2;margin-bottom:12px;}
+    40→  .hero h1 span{color:var(--gold);}
+    41→  .hero p{color:var(--text2);font-size:15px;max-width:580px;margin:0 auto 28px;}
+    42→  .hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;}
+    43→  .hstat{text-align:center;}
+    44→  .hstat-num{font-size:28px;font-weight:800;color:var(--gold);}
+    45→  .hstat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-top:2px;}
+    46→
+    47→  /* flow diagram */
+    48→  .flow-section{margin:28px 0;}
+    49→  .flow-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;}
+    50→  .flow-row{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 0;}
+    51→  .flow-node{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:130px;text-align:center;flex-shrink:0;}
+    52→  .flow-node.gold{border-color:var(--gold2);background:rgba(245,166,35,0.08);}
+    53→  .flow-node.green{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.07);}
+    54→  .flow-node.red{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.07);}
+    55→  .flow-node i{font-size:22px;margin-bottom:6px;display:block;}
+    56→  .flow-node.gold i{color:var(--gold);}
+    57→  .flow-node.green i{color:var(--green);}
+    58→  .flow-node.red i{color:var(--red);}
+    59→  .flow-node-title{font-size:12px;font-weight:700;color:var(--text);}
+    60→  .flow-node-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+    61→  .flow-arr{color:var(--text3);font-size:18px;margin:0 4px;flex-shrink:0;}
+    62→  
+    63→  .outcomes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:24px;}
+    64→  .out-card{border-radius:10px;padding:16px;border:1px solid;}
+    65→  .out-card.interested{border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.06);}
+    66→  .out-card.callback{border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.06);}
+    67→  .out-card.junk{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);}
+    68→  .out-card-icon{font-size:20px;margin-bottom:8px;}
+    69→  .out-card.interested .out-card-icon{color:var(--green);}
+    70→  .out-card.callback .out-card-icon{color:var(--gold);}
+    71→  .out-card.junk .out-card-icon{color:var(--red);}
+    72→  .out-card-title{font-size:13px;font-weight:700;}
+    73→  .out-card-desc{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4;}
+    74→
+    75→  /* ===== PAGE 2: LIVE PLATFORM ===== */
+    76→  .platform-grid{display:grid;grid-template-columns:260px 1fr 200px;gap:16px;height:calc(100vh - 120px);min-height:500px;}
+    77→  
+    78→  /* Panel base */
+    79→  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;}
+    80→  .panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    81→  .panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);}
+    82→  .panel-badge{background:var(--gold);color:#000;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;}
+    83→  .panel-body{flex:1;overflow-y:auto;padding:10px;}
+    84→  .panel-body::-webkit-scrollbar{width:3px;}
+    85→  .panel-body::-webkit-scrollbar-thumb{background:var(--border2);}
+    86→
+    87→  /* Aggregator leads */
+    88→  .lead-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+    89→  .lead-item:hover{border-color:var(--border2);}
+    90→  .lead-item.new-lead{animation:slideIn .4s ease;}
+    91→  @keyframes slideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
+    92→  .lead-avatar{width:32px;height:32px;border-radius:50%;background:rgba(245,166,35,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0;}
+    93→  .lead-info{flex:1;min-width:0;}
+    94→  .lead-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    95→  .lead-phone{font-size:10px;color:var(--text3);}
+    96→  .lead-status{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+    97→  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    98→  .status-dot.calling{background:var(--gold);animation:pulse 1s infinite;}
+    99→  .status-dot.interested{background:var(--green);}
+   100→  .status-dot.junk{background:var(--red);}
+   101→  .status-dot.waiting{background:var(--text3);}
+   102→  .status-dot.callback{background:var(--orange);}
+   103→  .status-dot.wa{background:var(--blue);}
+   104→  .status-label{font-size:9px;color:var(--text3);text-align:right;}
+   105→  .lead-pulse-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);animation:barPulse 2s linear infinite;opacity:0;}
+   106→  .lead-item.calling .lead-pulse-bar{opacity:1;}
+   107→  @keyframes barPulse{0%{width:0;}100%{width:100%;}}
+   108→
+   109→  /* Mid panel – call stream */
+   110→  .mid-panel{display:flex;flex-direction:column;gap:12px;}
+   111→  .call-counter-bar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+   112→  .counter-stats{display:flex;gap:24px;}
+   113→  .cstat{text-align:center;}
+   114→  .cstat-num{font-size:22px;font-weight:800;color:var(--gold);}
+   115→  .cstat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+   116→  .active-calls-label{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;}
+   117→
+   118→  .calls-grid{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+   119→  .calls-grid::-webkit-scrollbar{width:3px;}
+   120→  .calls-grid::-webkit-scrollbar-thumb{background:var(--border2);}
+   121→  .call-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:all .3s;}
+   122→  .call-card.active-call{border-color:rgba(245,166,35,0.4);}
+   123→  .call-card.finished{opacity:.7;border-color:var(--border);}
+   124→  .call-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+   125→  .call-name{font-size:13px;font-weight:600;}
+   126→  .call-status-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+   127→  .badge-calling{background:rgba(245,166,35,0.15);color:var(--gold);border:1px solid rgba(245,166,35,0.3);}
+   128→  .badge-connected{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+   129→  .badge-interested{background:rgba(34,197,94,0.2);color:var(--green);border:1px solid rgba(34,197,94,0.4);}
+   130→  .badge-callback{background:rgba(251,146,60,0.15);color:var(--orange);border:1px solid rgba(251,146,60,0.3);}
+   131→  .badge-notpicked{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25);}
+   132→  .badge-junk{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.25);}
+   133→  .badge-wa{background:rgba(96,165,250,0.15);color:var(--blue);border:1px solid rgba(96,165,250,0.3);}
+   134→  
+   135→  .script-box{background:var(--bg3);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--text2);line-height:1.5;border-left:2px solid var(--border2);min-height:32px;}
+   136→  .script-box.typing::after{content:'|';animation:blink .6s infinite;}
+   137→  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+   138→  .script-speaker{font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:.5px;margin-bottom:3px;}
+   139→  .script-speaker.bot{color:var(--gold);}
+   140→  .script-speaker.customer{color:var(--green);}
+   141→  .call-meta{display:flex;gap:12px;margin-top:6px;}
+   142→  .call-meta-item{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;}
+   143→  .attempt-dots{display:flex;gap:3px;}
+   144→  .adot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+   145→  .adot.done{background:var(--gold);}
+   146→  .adot.current{background:var(--gold);animation:pulse 1s infinite;}
+   147→
+   148→  /* Timer bar */
+   149→  .timer-bar-wrap{height:2px;background:var(--bg3);border-radius:1px;margin-top:6px;}
+   150→  .timer-bar{height:100%;background:var(--gold);border-radius:1px;transition:width 1s linear;}
+   151→
+   152→  /* Right – CRM + Junk */
+   153→  .right-col{display:flex;flex-direction:column;gap:12px;}
+   154→  .junk-bin{background:var(--bg2);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px;text-align:center;}
+   155→  .junk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--red);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:5px;}
+   156→  .junk-count{font-size:28px;font-weight:800;color:var(--red);}
+   157→  .junk-sub{font-size:9px;color:var(--text3);}
+   158→  .junk-items{margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:80px;overflow-y:auto;}
+   159→  .junk-chip{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:3px 6px;font-size:9px;color:var(--red);display:flex;align-items:center;gap:4px;}
+   160→  
+   161→  .crm-panel{flex:1;background:var(--bg2);border:1px solid rgba(34,197,94,0.25);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+   162→  .crm-header{background:rgba(34,197,94,0.08);padding:12px 14px;border-bottom:1px solid rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:space-between;}
+   163→  .crm-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);}
+   164→  .crm-count{font-size:20px;font-weight:800;color:var(--green);}
+   165→  .crm-sub{font-size:9px;color:var(--text3);}
+   166→  .crm-list{flex:1;overflow-y:auto;padding:8px;}
+   167→  .crm-list::-webkit-scrollbar{width:3px;}
+   168→  .crm-list::-webkit-scrollbar-thumb{background:rgba(34,197,94,0.2);}
+   169→  .crm-lead{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:6px;padding:7px 9px;margin-bottom:5px;font-size:11px;}
+   170→  .crm-lead.new-crm{animation:slideIn .4s ease;}
+   171→  .crm-lead-name{font-weight:600;color:var(--text);}
+   172→  .crm-lead-time{font-size:9px;color:var(--text3);}
+   173→  .crm-lead-tag{display:inline-block;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600;margin-top:2px;}
+   174→
+   175→  /* HyperX central counter */
+   176→  .hyperx-strip{background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(245,166,35,0.04));border:1px solid rgba(245,166,35,0.25);border-radius:12px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+   177→  .hx-label{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;}
+   178→  .hx-metrics{display:flex;gap:20px;}
+   179→  .hx-metric{text-align:center;}
+   180→  .hx-num{font-size:18px;font-weight:800;color:var(--gold);}
+   181→  .hx-sub{font-size:9px;color:var(--text3);text-transform:uppercase;}
+   182→
+   183→  /* ===== PAGE 3: ANALYTICS ===== */
+   184→  .analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+   185→  .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+   186→  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);}
+   187→  .kpi-num{font-size:26px;font-weight:800;margin:4px 0 2px;}
+   188→  .kpi-num.gold{color:var(--gold);}
+   189→  .kpi-num.green{color:var(--green);}
+   190→  .kpi-num.red{color:var(--red);}
+   191→  .kpi-num.blue{color:var(--blue);}
+   192→  .kpi-change{font-size:11px;color:var(--green);}
+   193→  
+   194→  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+   195→  .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+   196→  .chart-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+   197→  
+   198→  /* Bar chart */
+   199→  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
+   200→  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+   201→  .bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s;}
+   202→  .bar-label{font-size:9px;color:var(--text3);}
+   203→  .bar-val{font-size:9px;font-weight:600;color:var(--text2);}
+   204→
+   205→  /* Donut */
+   206→  .donut-wrap{display:flex;align-items:center;gap:20px;}
+   207→  .donut-svg{flex-shrink:0;}
+   208→  .donut-legend{display:flex;flex-direction:column;gap:8px;}
+   209→  .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;}
+   210→  .legend-dot{width:8px;height:8px;border-radius:50%;}
+   211→  
+   212→  /* Funnel */
+   213→  .funnel{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+   214→  .funnel-step{display:flex;align-items:center;gap:10px;}
+   215→  .funnel-bar-wrap{flex:1;background:var(--bg3);border-radius:3px;height:22px;overflow:hidden;}
+   216→  .funnel-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:#000;transition:width .8s;}
+   217→  .funnel-label{font-size:10px;color:var(--text2);min-width:90px;}
+   218→  .funnel-count{font-size:10px;color:var(--text3);min-width:28px;text-align:right;}
+   219→
+   220→  /* Retry timeline */
+   221→  .retry-timeline{display:flex;align-items:center;gap:0;margin-top:8px;overflow-x:auto;}
+   222→  .rt-step{flex-shrink:0;text-align:center;}
+   223→  .rt-circle{width:36px;height:36px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;font-weight:700;}
+   224→  .rt-circle.c1{border-color:var(--gold);background:rgba(245,166,35,0.15);color:var(--gold);}
+   225→  .rt-circle.c2{border-color:var(--orange);background:rgba(251,146,60,0.15);color:var(--orange);}
+   226→  .rt-circle.c3{border-color:var(--blue);background:rgba(96,165,250,0.12);color:var(--blue);}
+   227→  .rt-circle.c4{border-color:var(--red);background:rgba(239,68,68,0.1);color:var(--red);}
+   228→  .rt-label{font-size:9px;color:var(--text3);}
+   229→  .rt-time{font-size:9px;font-weight:600;color:var(--text2);}
+   230→  .rt-line{height:2px;width:40px;background:var(--border);flex-shrink:0;margin:0 2px;position:relative;top:-14px;}
+   231→
+   232→  /* Download */
+   233→  .dl-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;}
+   234→  .dl-btn:hover{background:var(--gold3);}
+   235→
+   236→  /* scrollbar global */
+   237→  ::-webkit-scrollbar{width:4px;height:4px;}
+   238→  ::-webkit-scrollbar-thumb{background:var(--border);}
+   239→  
+   240→  @media print{nav{display:none;} .page{display:block !important; page-break-after:always;}}
+   241→</style>
+   242→</head>
+   243→<body>
+   244→
+   245→<!-- NAV -->
+   246→<nav>
+   247→  <div class="nav-logo">
+   248→    <i class="ti ti-bolt" style="color:var(--gold);font-size:22px"></i>
+   249→    HyperX <span style="margin-left:4px">× Toyota</span>
+   250→  </div>
+   251→  <div class="nav-tabs">
+   252→    <button class="tab-btn active" onclick="showPage('overview',this)">Overview</button>
+   253→    <button class="tab-btn" onclick="showPage('platform',this)">Live Platform</button>
+   254→    <button class="tab-btn" onclick="showPage('analytics',this)">Analytics</button>
+   255→  </div>
+   256→  <div class="nav-right">
+   257→    <div class="live-badge"><span class="live-dot"></span> LIVE DEMO</div>
+   258→    <button class="dl-btn" onclick="downloadPresentation()"><i class="ti ti-download"></i> Export</button>
+   259→  </div>
+   260→</nav>
+   261→
+   262→<!-- ========== PAGE 1: OVERVIEW ========== -->
+   263→<div id="page-overview" class="page active">
+   264→  <div class="hero">
+   265→    <div class="hero-tag">TOYOTA × HYPERX LEAD QUALIFICATION ENGINE</div>
+   266→    <h1>Convert Aggregator Leads<br/>into <span>Qualified Buyers</span></h1>
+   267→    <p>HyperX uses an AI voice bot to instantly engage every incoming lead — running simultaneous calls, qualifying interest, and routing hot prospects directly into Toyota CRM.</p>
+   268→    <div class="hero-stats">
+   269→      <div class="hstat"><div class="hstat-num">~10s</div><div class="hstat-label">Avg call connect time</div></div>
+   270→      <div class="hstat"><div class="hstat-num">30 hrs</div><div class="hstat-label">Total retry window</div></div>
+   271→      <div class="hstat"><div class="hstat-num">4 +WA</div><div class="hstat-label">Touch attempts</div></div>
+   272→      <div class="hstat"><div class="hstat-num">100%</div><div class="hstat-label">Leads auto-classified</div></div>
+   273→    </div>
+   274→  </div>
+   275→
+   276→  <div class="flow-section">
+   277→    <div class="flow-title">End-to-End Flow</div>
+   278→    <div class="flow-row">
+   279→      <div class="flow-node gold">
+   280→        <i class="ti ti-database-import"></i>
+   281→        <div class="flow-node-title">Aggregator</div>
+   282→        <div class="flow-node-sub">Leads stream in</div>
+   283→      </div>
+   284→      <span class="flow-arr">›</span>
+   285→      <div class="flow-node gold">
+   286→        <i class="ti ti-bolt"></i>
+   287→        <div class="flow-node-title">HyperX Engine</div>
+   288→        <div class="flow-node-sub">AI triggers calls</div>
+   289→      </div>
+   290→      <span class="flow-arr">›</span>
+   291→      <div class="flow-node">
+   292→        <i class="ti ti-phone" style="color:var(--gold)"></i>
+   293→        <div class="flow-node-title">Voice Bot</div>
+   294→        <div class="flow-node-sub">Simultaneous calls</div>
+   295→      </div>
+   296→      <span class="flow-arr">›</span>
+   297→      <div class="flow-node">
+   298→        <i class="ti ti-message-2" style="color:var(--blue)"></i>
+   299→        <div class="flow-node-title">Qualification</div>
+   300→        <div class="flow-node-sub">AI chat + retry logic</div>
+   301→      </div>
+   302→      <span class="flow-arr">›</span>
+   303→      <div class="flow-node green">
+   304→        <i class="ti ti-check"></i>
+   305→        <div class="flow-node-title">Toyota CRM</div>
+   306→        <div class="flow-node-sub">Interested leads only</div>
+   307→      </div>
+   308→      <span class="flow-arr">›</span>
+   309→      <div class="flow-node red">
+   310→        <i class="ti ti-trash"></i>
+   311→        <div class="flow-node-title">Junk Bin</div>
+   312→        <div class="flow-node-sub">Not interested</div>
+   313→      </div>
+   314→    </div>
+   315→  </div>
+   316→
+   317→  <div class="flow-section">
+   318→    <div class="flow-title">Call Outcomes</div>
+   319→    <div class="outcomes">
+   320→      <div class="out-card interested">
+   321→        <div class="out-card-icon"><i class="ti ti-thumb-up"></i></div>
+   322→        <div class="out-card-title">Customer Says YES</div>
+   323→        <div class="out-card-desc">WhatsApp confirmation sent: "Our Toyota senior will get in touch." Lead forwarded to Toyota CRM immediately.</div>
+   324→      </div>
+   325→      <div class="out-card callback">
+   326→        <div class="out-card-icon"><i class="ti ti-clock"></i></div>
+   327→        <div class="out-card-title">Call Back / Not Picked</div>
+   328→        <div class="out-card-desc">Retry at +2hr → +4hr → +24hr. Then WhatsApp. If no YES within 48hr of WA → mark as Junk.</div>
+   329→      </div>
+   330→      <div class="out-card junk">
+   331→        <div class="out-card-icon"><i class="ti ti-x"></i></div>
+   332→        <div class="out-card-title">Customer Says NO</div>
+   333→        <div class="out-card-desc">Immediately removed from call list. Marked as Junk in system. No further outreach.</div>
+   334→      </div>
+   335→    </div>
+   336→  </div>
+   337→
+   338→  <div class="flow-section">
+   339→    <div class="flow-title">Retry & Engagement Timeline (Total Window: 30 Hours)</div>
+   340→    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+   341→      <div class="retry-timeline">
+   342→        <div class="rt-step">
+   343→          <div class="rt-circle c1">1</div>
+   344→          <div class="rt-time">T+0</div>
+   345→          <div class="rt-label">1st Call</div>
+   346→        </div>
+   347→        <div class="rt-line"></div>
+   348→        <div class="rt-step">
+   349→          <div class="rt-circle c1">2</div>
+   350→          <div class="rt-time">T+2hr</div>
+   351→          <div class="rt-label">2nd Call</div>
+   352→        </div>
+   353→        <div class="rt-line"></div>
+   354→        <div class="rt-step">
+   355→          <div class="rt-circle c2">3</div>
+   356→          <div class="rt-time">T+6hr</div>
+   357→          <div class="rt-label">3rd Call</div>
+   358→        </div>
+   359→        <div class="rt-line"></div>
+   360→        <div class="rt-step">
+   361→          <div class="rt-circle c2">4</div>
+   362→          <div class="rt-time">T+30hr</div>
+   363→          <div class="rt-label">4th Call</div>
+   364→        </div>
+   365→        <div class="rt-line"></div>
+   366→        <div class="rt-step">
+   367→          <div class="rt-circle c3">WA</div>
+   368→          <div class="rt-time">Post 4th</div>
+   369→          <div class="rt-label">WhatsApp</div>
+   370→        </div>
+   371→        <div class="rt-line"></div>
+   372→        <div class="rt-step">
+   373→          <div class="rt-circle c4">✕</div>
+   374→          <div class="rt-time">+48hr</div>
+   375→          <div class="rt-label">→ Junk</div>
+   376→        </div>
+   377→      </div>
+   378→      <div style="font-size:11px;color:var(--text3);margin-top:14px;line-height:1.7">
+   379→        After 4th call attempt — WhatsApp message sent asking: <strong style="color:var(--text)">"Are you interested in the Toyota offer? Reply YES or NO."</strong><br/>
+   380→        YES → Lead routed to Toyota CRM &nbsp;|&nbsp; NO / No reply within 48hr → Marked as Junk
+   381→      </div>
+   382→    </div>
+   383→  </div>
+   384→</div>
+   385→
+   386→<!-- ========== PAGE 2: LIVE PLATFORM ========== -->
+   387→<div id="page-platform" class="page">
+   388→  <div style="display:flex;flex-direction:column;gap:12px;height:calc(100vh - 100px);">
+   389→    <!-- Top HyperX strip -->
+   390→    <div class="hyperx-strip">
+   391→      <div style="display:flex;align-items:center;gap:10px;">
+   392→        <i class="ti ti-bolt" style="font-size:22px;color:var(--gold)"></i>
+   393→        <div class="hx-label">HyperX Engine</div>
+   394→      </div>
+   395→      <div class="hx-metrics">
+   396→        <div class="hx-metric"><div class="hx-num" id="hx-active">0</div><div class="hx-sub">Active Calls</div></div>
+   397→        <div class="hx-metric"><div class="hx-num" id="hx-total">0</div><div class="hx-sub">Total Calls</div></div>
+   398→        <div class="hx-metric"><div class="hx-num" id="hx-interested">0</div><div class="hx-sub" style="color:var(--green)">Interested</div></div>
+   399→        <div class="hx-metric"><div class="hx-num" id="hx-junk">0</div><div class="hx-sub" style="color:var(--red)">Junk</div></div>
+   400→        <div class="hx-metric"><div class="hx-num" id="hx-rate">0%</div><div class="hx-sub">Conv. Rate</div></div>
+   401→      </div>
+   402→      <button onclick="toggleSim()" id="sim-btn" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;">
+   403→        <i class="ti ti-player-play" id="sim-icon"></i> Start Simulation
+   404→      </button>
+   405→    </div>
+   406→
+   407→    <div class="platform-grid" style="flex:1;height:auto;">
+   408→      <!-- LEFT: Aggregator -->
+   409→      <div class="panel">
+   410→        <div class="panel-header">
+   411→          <div class="panel-title"><i class="ti ti-database-import" style="font-size:13px;margin-right:4px"></i>Aggregator</div>
+   412→          <span class="panel-badge" id="agg-badge">0</span>
+   413→        </div>
+   414→        <div class="panel-body" id="agg-list"></div>
+   415→      </div>
+   416→
+   417→      <!-- MID: Call Stream -->
+   418→      <div class="mid-panel">
+   419→        <div class="calls-grid" id="calls-grid" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+   420→      </div>
+   421→
+   422→      <!-- RIGHT: CRM + Junk -->
+   423→      <div class="right-col">
+   424→        <div class="junk-bin">
+   425→          <div class="junk-title"><i class="ti ti-trash" style="font-size:13px"></i> Junk Bin</div>
+   426→          <div class="junk-count" id="junk-count">0</div>
+   427→          <div class="junk-sub">disqualified leads</div>
+   428→          <div class="junk-items" id="junk-list"></div>
+   429→        </div>
+   430→        <div class="crm-panel">
+   431→          <div class="crm-header">
+   432→            <div>
+   433→              <div class="crm-title"><i class="ti ti-car" style="font-size:12px;margin-right:4px"></i>Toyota CRM</div>
+   434→              <div class="crm-sub">Qualified Leads</div>
+   435→            </div>
+   436→            <div style="text-align:right;">
+   437→              <div class="crm-count" id="crm-count">0</div>
+   438→              <div class="crm-sub">interested</div>
+   439→            </div>
+   440→          </div>
+   441→          <div class="crm-list" id="crm-list"></div>
+   442→        </div>
+   443→      </div>
+   444→    </div>
+   445→  </div>
+   446→</div>
+   447→
+   448→<!-- ========== PAGE 3: ANALYTICS ========== -->
+   449→<div id="page-analytics" class="page">
+   450→  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+   451→    <div>
+   452→      <div style="font-size:20px;font-weight:800;">Campaign Analytics</div>
+   453→      <div style="font-size:12px;color:var(--text3);">Toyota Lead Qualification — HyperX Platform</div>
+   454→    </div>
+   455→    <button class="dl-btn" onclick="downloadPresentation()"><i class="ti ti-download"></i> Download Report</button>
+   456→  </div>
+   457→
+   458→  <div class="analytics-grid">
+   459→    <div class="kpi-card">
+   460→      <div class="kpi-label">Total Leads</div>
+   461→      <div class="kpi-num gold" id="kpi-total">0</div>
+   462→      <div class="kpi-change">↑ from aggregator</div>
+   463→    </div>
+   464→    <div class="kpi-card">
+   465→      <div class="kpi-label">Qualified (CRM)</div>
+   466→      <div class="kpi-num green" id="kpi-crm">0</div>
+   467→      <div class="kpi-change" id="kpi-conv-rate">0% conversion</div>
+   468→    </div>
+   469→    <div class="kpi-card">
+   470→      <div class="kpi-label">Junk / Disqualified</div>
+   471→      <div class="kpi-num red" id="kpi-junk">0</div>
+   472→      <div style="font-size:11px;color:var(--text3);" id="kpi-junk-pct">0% of total</div>
+   473→    </div>
+   474→    <div class="kpi-card">
+   475→      <div class="kpi-label">In Progress</div>
+   476→      <div class="kpi-num blue" id="kpi-active">0</div>
+   477→      <div style="font-size:11px;color:var(--text3);">being worked</div>
+   478→    </div>
+   479→  </div>
+   480→
+   481→  <div class="charts-row">
+   482→    <div class="chart-card">
+   483→      <div class="chart-title">Lead Disposition Funnel</div>
+   484→      <div class="funnel" id="funnel-chart">
+   485→        <div class="funnel-step">
+   486→          <div class="funnel-label">Total Leads</div>
+   487→          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-total" style="width:100%;background:var(--gold);">0</div></div>
+   488→          <div class="funnel-count" id="fc-total">0</div>
+   489→        </div>
+   490→        <div class="funnel-step">
+   491→          <div class="funnel-label">Calls Connected</div>
+   492→          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-connected" style="width:70%;background:#e8920d;">0</div></div>
+   493→          <div class="funnel-count" id="fc-connected">0</div>
+   494→        </div>
+   495→        <div class="funnel-step">
+   496→          <div class="funnel-label">Interested (YES)</div>
+   497→          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-yes" style="width:40%;background:#22c55e;">0</div></div>
+   498→          <div class="funnel-count" id="fc-yes">0</div>
+   499→        </div>
+   500→        <div class="funnel-step">
+   501→          <div class="funnel-label">In Toyota CRM</div>
+   502→          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-crm" style="width:35%;background:#16a34a;">0</div></div>
+   503→          <div class="funnel-count" id="fc-crm">0</div>
+   504→        </div>
+   505→        <div class="funnel-step">
+   506→          <div class="funnel-label">Junk / No Interest</div>
+   507→          <div class="funnel-bar-wrap"><div class="funnel-fill" id="f-junk2" style="width:25%;background:#ef4444;">0</div></div>
+   508→          <div class="funnel-count" id="fc-junk2">0</div>
+   509→        </div>
+   510→      </div>
+   511→    </div>
+   512→    <div class="chart-card">
+   513→      <div class="chart-title">Outcome Distribution</div>
+   514→      <div class="donut-wrap">
+   515→        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+   516→          <circle cx="55" cy="55" r="40" fill="none" stroke="var(--bg3)" stroke-width="18"/>
+   517→          <circle id="d-interested" cx="55" cy="55" r="40" fill="none" stroke="var(--green)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+   518→          <circle id="d-junk" cx="55" cy="55" r="40" fill="none" stroke="var(--red)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+   519→          <circle id="d-active" cx="55" cy="55" r="40" fill="none" stroke="var(--blue)" stroke-width="18" stroke-dasharray="0 251" stroke-dashoffset="63" style="transition:stroke-dasharray .8s;transform:rotate(-90deg);transform-origin:55px 55px;"/>
+   520→          <text x="55" y="58" text-anchor="middle" font-size="14" font-weight="800" fill="var(--gold)" id="d-pct">0%</text>
+   521→        </svg>
+   522→        <div class="donut-legend">
+   523→          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span id="dl-interested">Interested (0)</span></div>
+   524→          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span id="dl-junk">Junk (0)</span></div>
+   525→          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span id="dl-active">In Progress (0)</span></div>
+   526→        </div>
+   527→      </div>
+   528→    </div>
+   529→  </div>
+   530→
+   531→  <div class="chart-card" style="margin-bottom:16px;">
+   532→    <div class="chart-title">Call Volume by Hour</div>
+   533→    <div class="bar-chart" id="bar-chart">
+   534→      <!-- generated by JS -->
+   535→    </div>
+   536→  </div>
+   537→
+   538→  <div class="chart-card">
+   539→    <div class="chart-title">Retry Attempt Success Rate</div>
+   540→    <div style="display:flex;gap:16px;margin-top:4px;">
+   541→      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+   542→        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">1st Attempt</div>
+   543→        <div style="font-size:20px;font-weight:800;color:var(--gold);" id="ar-1">—</div>
+   544→        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+   545→      </div>
+   546→      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+   547→        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">2nd (+2hr)</div>
+   548→        <div style="font-size:20px;font-weight:800;color:var(--orange);" id="ar-2">—</div>
+   549→        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+   550→      </div>
+   551→      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+   552→        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">3rd (+6hr)</div>
+   553→        <div style="font-size:20px;font-weight:800;color:var(--blue);" id="ar-3">—</div>
+   554→        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+   555→      </div>
+   556→      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+   557→        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">4th (+30hr)</div>
+   558→        <div style="font-size:20px;font-weight:800;color:var(--red);" id="ar-4">—</div>
+   559→        <div style="font-size:9px;color:var(--text3)">pick rate</div>
+   560→      </div>
+   561→      <div style="flex:1;background:var(--bg3);border-radius:8px;padding:12px;text-align:center;">
+   562→        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">WA Response</div>
+   563→        <div style="font-size:20px;font-weight:800;color:var(--green);" id="ar-wa">—</div>
+   564→        <div style="font-size:9px;color:var(--text3)">response rate</div>
+   565→      </div>
+   566→    </div>
+   567→  </div>
+   568→</div>
+   569→
+   570→<script>
+   571→// ===================== DATA =====================
+   572→const NAMES = ['Rahul Sharma','Priya Nair','Amit Verma','Sunita Rao','Kiran Patel','Deepak Singh','Meera Iyer','Suresh Kumar','Anita Joshi','Vikram Das','Pooja Menon','Rajan Pillai','Neha Gupta','Anil Bose','Kavya Reddy','Mohan Tiwari','Divya Srinivas','Sanjay Mehta','Lata Choudhary','Ravi Nambiar'];
+   573→const PHONES = ['98××× 12345','87××× 54321','76××× 98765','90××× 11223','83××× 44556','72××× 77889','99××× 00112','88××× 33445','77××× 66778','91××× 99001'];
+   574→const SCRIPTS = {
+   575→  bot_greet: ['Namaste! Am I speaking with {name}? This is Aria calling from Toyota. We noticed your interest in the new Toyota Innova Hycross. May I take 2 minutes of your time?','Hello {name}! This is Aria, your Toyota AI assistant. You recently enquired about our vehicles. Are you still interested?'],
+   576→  cust_yes: ['Yes, I am interested. Can you tell me more?','Sure, please go ahead.','Yes yes, I was waiting for this call!'],
+   577→  bot_qualify: ['Wonderful! The new Toyota Innova Hycross starts at ₹19.99L. Are you looking for a personal or family vehicle?','Excellent! We have exciting exchange offers this month. Is this your first Toyota?'],
+   578→  cust_details: ['It would be for family use.','I am upgrading from a Honda City.','My budget is around 22 lakhs.'],
+   579→  bot_close_yes: ['Perfect! I am noting you as Interested. Our senior Toyota executive will connect with you on WhatsApp shortly. Thank you, {name}! Have a great day!'],
+   580→  bot_callback: ['No problem at all! I will schedule a call back at your convenience. Have a great day!'],
+   581→  bot_no: ['I completely understand. I will remove you from our calling list. Thank you for your time, {name}. Have a wonderful day!'],
+   582→  cust_no: ['No, I am not interested right now.','Please don\'t call again.','I already bought a car.'],
+   583→  cust_cb: ['Can you call after 2 hours?','Not a good time, please call later.','I am in a meeting.'],
+   584→};
+   585→
+   586→// ===================== STATE =====================
+   587→let simRunning=false, simInterval=null;
+   588→let leads=[], crmLeads=[], junkLeads=[];
+   589→let totalCalls=0, activeCalls=0, interestedCount=0, junkCount=0;
+   590→let hourlyData=Array(8).fill(0);
+   591→let nameIdx=0;
+   592→
+   593→// ===================== SIM =====================
+   594→function toggleSim(){
+   595→  simRunning=!simRunning;
+   596→  document.getElementById('sim-btn').innerHTML=simRunning?'<i class="ti ti-player-pause"></i> Pause':'<i class="ti ti-player-play"></i> Start Simulation';
+   597→  if(simRunning) runSim(); else {clearTimeout(simInterval);}
+   598→}
+   599→
+   600→function runSim(){
+   601→  if(!simRunning) return;
+   602→  addNewLead();
+   603→  simInterval=setTimeout(runSim, 2800+Math.random()*2000);
+   604→}
+   605→
+   606→function randName(){return NAMES[nameIdx++%NAMES.length];}
+   607→function randPhone(){return PHONES[Math.floor(Math.random()*PHONES.length)];}
+   608→function randScript(key,name){const a=SCRIPTS[key];return a[Math.floor(Math.random()*a.length)].replace('{name}',name.split(' ')[0]);}
+   609→
+   610→function addNewLead(){
+   611→  const name=randName(), phone=randPhone();
+   612→  const id='lead-'+Date.now()+Math.random();
+   613→  const outcome=Math.random()<0.35?'interested':Math.random()<0.5?'callback':Math.random()<0.5?'junk':'notpicked';
+   614→  const lead={id,name,phone,outcome,attempt:1,status:'calling'};
+   615→  leads.push(lead);
+   616→  renderAgg();
+   617→  totalCalls++;
+   618→  activeCalls++;
+   619→  hourlyData[Math.floor(Math.random()*8)]++;
+   620→  renderCallCard(lead);
+   621→  updateCounters();
+   622→  // simulate call duration
+   623→  const dur=5000+Math.random()*6000;
+   624→  setTimeout(()=>finishCall(lead,dur),dur);
+   625→}
+   626→
+   627→function finishCall(lead,dur){
+   628→  activeCalls=Math.max(0,activeCalls-1);
+   629→  if(lead.outcome==='interested'){
+   630→    lead.status='interested'; interestedCount++;
+   631→    addToCRM(lead);
+   632→  } else if(lead.outcome==='junk'){
+   633→    lead.status='junk'; junkCount++;
+   634→    addToJunk(lead);
+   635→  } else if(lead.outcome==='callback'){
+   636→    lead.status='callback';
+   637→  } else {
+   638→    lead.status='notpicked';
+   639→  }
+   640→  renderAgg();
+   641→  updateCardStatus(lead);
+   642→  updateCounters();
+   643→  updateAnalytics();
+   644→}
+   645→
+   646→function addToCRM(lead){
+   647→  crmLeads.unshift(lead);
+   648→  const el=document.createElement('div');
+   649→  el.className='crm-lead new-crm';
+   650→  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+   651→  el.innerHTML=`<div class="crm-lead-name">${lead.name}</div><div class="crm-lead-time">${now} · ${lead.phone}</div><span class="crm-lead-tag">✓ Interested</span>`;
+   652→  document.getElementById('crm-list').prepend(el);
+   653→  document.getElementById('crm-count').textContent=crmLeads.length;
+   654→  document.getElementById('hx-interested').textContent=interestedCount;
+   655→}
+   656→
+   657→function addToJunk(lead){
+   658→  junkLeads.unshift(lead);
+   659→  const el=document.createElement('div');
+   660→  el.className='junk-chip';
+   661→  el.innerHTML=`<i class="ti ti-x" style="font-size:9px"></i>${lead.name.split(' ')[0]}`;
+   662→  document.getElementById('junk-list').prepend(el);
+   663→  document.getElementById('junk-count').textContent=junkLeads.length;
+   664→  document.getElementById('hx-junk').textContent=junkCount;
+   665→}
+   666→
+   667→// ===================== RENDER AGG =====================
+   668→function renderAgg(){
+   669→  const list=document.getElementById('agg-list');
+   670→  list.innerHTML='';
+   671→  document.getElementById('agg-badge').textContent=leads.length;
+   672→  [...leads].reverse().slice(0,20).forEach(l=>{
+   673→    const dotClass=l.status==='calling'?'calling':l.status==='interested'?'interested':l.status==='junk'?'junk':l.status==='callback'?'callback':l.status==='notpicked'?'wa':'waiting';
+   674→    const statusTxt={'calling':'Calling…','interested':'Interested','junk':'Junk','callback':'Callback','notpicked':'No Pick'}[l.status]||l.status;
+   675→    const div=document.createElement('div');
+   676→    div.className=`lead-item ${l.status==='calling'?'new-lead':''}`;
+   677→    div.innerHTML=`
+   678→      <div class="lead-avatar">${l.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+   679→      <div class="lead-info"><div class="lead-name">${l.name}</div><div class="lead-phone">${l.phone}</div></div>
+   680→      <div class="lead-status"><div class="status-dot ${dotClass}"></div><div class="status-label">${statusTxt}</div></div>
+   681→      <div class="lead-pulse-bar"></div>`;
+   682→    list.appendChild(div);
+   683→  });
+   684→}
+   685→
+   686→// ===================== CALL CARDS =====================
+   687→function renderCallCard(lead){
+   688→  const grid=document.getElementById('calls-grid');
+   689→  const card=document.createElement('div');
+   690→  card.id='card-'+lead.id;
+   691→  card.className='call-card active-call';
+   692→  const atDots=`<div class="attempt-dots">${[1,2,3,4].map(i=>`<div class="adot ${i<lead.attempt?'done':i===lead.attempt?'current':''}"></div>`).join('')}</div>`;
+   693→  card.innerHTML=`
+   694→    <div class="call-card-top">
+   695→      <div class="call-name">${lead.name}</div>
+   696→      <span class="call-status-badge badge-calling">● Calling</span>
+   697→    </div>
+   698→    <div class="script-box" id="script-${lead.id}">
+   699→      <div class="script-speaker bot">HyperX Bot</div>
+   700→      <div id="script-text-${lead.id}" class="typing">${randScript('bot_greet',lead.name)}</div>
+   701→    </div>
+   702→    <div class="call-meta">
+   703→      <div class="call-meta-item"><i class="ti ti-clock" style="font-size:10px"></i> Attempt ${lead.attempt}/4</div>
+   704→      ${atDots}
+   705→      <div class="call-meta-item" style="margin-left:auto"><i class="ti ti-phone" style="font-size:10px"></i> ${lead.phone}</div>
+   706→    </div>
+   707→    <div class="timer-bar-wrap"><div class="timer-bar" id="tbar-${lead.id}" style="width:0%"></div></div>`;
+   708→  grid.prepend(card);
+   709→  // animate timer bar
+   710→  let pct=0;
+   711→  const ti=setInterval(()=>{pct+=2;document.getElementById('tbar-'+lead.id)&&(document.getElementById('tbar-'+lead.id).style.width=Math.min(pct,100)+'%');if(pct>=100)clearInterval(ti);},100);
+   712→  // typewriter
+   713→  setTimeout(()=>typeScript(lead,'cust_yes',false,lead.id),2000);
+   714→}
+   715→
+   716→function typeScript(lead,key,isBot,cardId){
+   717→  const el=document.getElementById('script-text-'+cardId);
+   718→  if(!el) return;
+   719→  const parent=el.parentElement;
+   720→  if(parent){parent.querySelector('.script-speaker').textContent=isBot?'HyperX Bot':'Customer';parent.querySelector('.script-speaker').className='script-speaker '+(isBot?'bot':'customer');}
+   721→  const text=randScript(key,lead.name);
+   722→  el.textContent=''; el.classList.add('typing');
+   723→  let i=0;
+   724→  const ti=setInterval(()=>{el.textContent+=text[i]||'';i++;if(i>=text.length){el.classList.remove('typing');clearInterval(ti);}},28);
+   725→}
+   726→
+   727→function updateCardStatus(lead){
+   728→  const card=document.getElementById('card-'+lead.id);
+   729→  if(!card) return;
+   730→  card.className='call-card finished';
+   731→  const badge=card.querySelector('.call-status-badge');
+   732→  if(!badge) return;
+   733→  const map={interested:['badge-interested','✓ Interested'],junk:['badge-junk','✕ Not Interested'],callback:['badge-callback','↻ Callback'],notpicked:['badge-notpicked','No Answer']};
+   734→  const [cls,lbl]=map[lead.status]||['badge-notpicked','Done'];
+   735→  badge.className='call-status-badge '+cls; badge.textContent=lbl;
+   736→  // script final line
+   737→  setTimeout(()=>{
+   738→    if(lead.outcome==='interested') typeScript(lead,'bot_close_yes',true,lead.id);
+   739→    else if(lead.outcome==='junk') typeScript(lead,'bot_no',true,lead.id);
+   740→    else typeScript(lead,'bot_callback',true,lead.id);
+   741→  },300);
+   742→}
+   743→
+   744→// ===================== COUNTERS =====================
+   745→function updateCounters(){
+   746→  document.getElementById('hx-active').textContent=activeCalls;
+   747→  document.getElementById('hx-total').textContent=totalCalls;
+   748→  const rate=totalCalls>0?Math.round((interestedCount/totalCalls)*100)+'%':'0%';
+   749→  document.getElementById('hx-rate').textContent=rate;
+   750→}
+   751→
+   752→// ===================== ANALYTICS =====================
+   753→function updateAnalytics(){
+   754→  const T=leads.length, C=crmLeads.length, J=junkLeads.length, A=activeCalls;
+   755→  const connected=Math.round(T*0.7), yes=C;
+   756→  document.getElementById('kpi-total').textContent=T;
+   757→  document.getElementById('kpi-crm').textContent=C;
+   758→  document.getElementById('kpi-junk').textContent=J;
+   759→  document.getElementById('kpi-active').textContent=A;
+   760→  const conv=T>0?Math.round((C/T)*100):0;
+   761→  document.getElementById('kpi-conv-rate').textContent=conv+'% conversion';
+   762→  document.getElementById('kpi-junk-pct').textContent=(T>0?Math.round((J/T)*100):0)+'% of total';
+   763→  // funnel
+   764→  const pct=n=>T>0?Math.round((n/T)*100):0;
+   765→  setFunnel('total',T,100);
+   766→  setFunnel('connected',connected,pct(connected));
+   767→  setFunnel('yes',yes,pct(yes));
+   768→  setFunnel('crm',C,pct(C));
+   769→  setFunnel('junk2',J,pct(J));
+   770→  // donut
+   771→  const circ=251;
+   772→  const gi=T>0?C/T:0, gj=T>0?J/T:0, ga=T>0?A/T:0;
+   773→  setDonutArc('d-interested',gi,0,circ);
+   774→  setDonutArc('d-junk',gj,gi,circ);
+   775→  setDonutArc('d-active',ga,gi+gj,circ);
+   776→  document.getElementById('d-pct').textContent=(T>0?Math.round((C/T)*100):0)+'%';
+   777→  document.getElementById('dl-interested').textContent=`Interested (${C})`;
+   778→  document.getElementById('dl-junk').textContent=`Junk (${J})`;
+   779→  document.getElementById('dl-active').textContent=`In Progress (${A})`;
+   780→  // bars
+   781→  renderBars();
+   782→  // attempt rates (simulated)
+   783→  if(T>0){
+   784→    document.getElementById('ar-1').textContent=Math.round(55+Math.random()*10)+'%';
+   785→    document.getElementById('ar-2').textContent=Math.round(40+Math.random()*10)+'%';
+   786→    document.getElementById('ar-3').textContent=Math.round(28+Math.random()*8)+'%';
+   787→    document.getElementById('ar-4').textContent=Math.round(18+Math.random()*7)+'%';
+   788→    document.getElementById('ar-wa').textContent=Math.round(22+Math.random()*10)+'%';
+   789→  }
+   790→}
+   791→
+   792→function setFunnel(key,val,pct){
+   793→  const fill=document.getElementById('f-'+key);
+   794→  const cnt=document.getElementById('fc-'+key);
+   795→  if(fill){fill.style.width=Math.max(pct,2)+'%';fill.textContent=val>0?val:'';}
+   796→  if(cnt) cnt.textContent=val;
+   797→}
+   798→
+   799→function setDonutArc(id,frac,offset,circ){
+   800→  const el=document.getElementById(id);
+   801→  if(!el) return;
+   802→  const dash=Math.round(frac*circ);
+   803→  const off=Math.round(offset*circ);
+   804→  el.setAttribute('stroke-dasharray',dash+' '+(circ-dash));
+   805→  el.setAttribute('stroke-dashoffset',63-off);
+   806→}
+   807→
+   808→function renderBars(){
+   809→  const bc=document.getElementById('bar-chart');
+   810→  bc.innerHTML='';
+   811→  const max=Math.max(...hourlyData,1);
+   812→  const hours=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm'];
+   813→  hourlyData.forEach((v,i)=>{
+   814→    const h=Math.round((v/max)*100);
+   815→    bc.innerHTML+=`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${h}%;background:var(--gold);opacity:${0.5+i*0.07}"></div><div class="bar-label">${hours[i]}</div></div>`;
+   816→  });
+   817→}
+   818→
+   819→// ===================== PAGES =====================
+   820→function showPage(id,btn){
+   821→  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+   822→  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+   823→  document.getElementById('page-'+id).classList.add('active');
+   824→  btn.classList.add('active');
+   825→  if(id==='analytics') updateAnalytics();
+   826→}
+   827→
+   828→// ===================== DOWNLOAD =====================
+   829→function downloadPresentation(){
+   830→  const html=document.documentElement.outerHTML;
+   831→  const blob=new Blob([html],{type:'text/html'});
+   832→  const a=document.createElement('a');
+   833→  a.href=URL.createObjectURL(blob);
+   834→  a.download='HyperX_Toyota_Pitch.html';
+   835→  a.click();
+   836→}
+   837→
+   838→// Init bars
+   839→renderBars();
+   840→</script>
+   841→</body>
+   842→</html>

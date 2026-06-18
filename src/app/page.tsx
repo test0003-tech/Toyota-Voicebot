@@ -3,15 +3,11 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Phone, PhoneOff, PhoneIncoming, PhoneMissed, PhoneCall,
-  MessageSquare, Users, Trash2, TrendingUp, Clock, Zap,
-  ArrowRight, ChevronRight, Bot, User, Send, BarChart3,
-  Activity, AlertTriangle, CheckCircle2, XCircle, Timer,
-  Volume2, Pause, Play, FastForward, RotateCcw, Wifi,
-  MessageCircle, Filter, Target, Sparkles, ArrowDownRight,
-  ArrowDown, ArrowRightLeft, CircleDot, Database, Inbox,
-  PhoneForwarded, PhoneOutgoing, Siren, Waypoints, Globe,
-  RefreshCw, PhoneCall as PhoneCallIcon,
+  Phone, PhoneMissed, PhoneCall, MessageSquare, Users, Trash2, TrendingUp,
+  Clock, Zap, ArrowRight, Bot, User, Activity, AlertTriangle, CheckCircle2,
+  XCircle, Timer, Volume2, Pause, Play, FastForward, RotateCcw, MessageCircle,
+  Target, Sparkles, Database, Globe, RefreshCw, Download, Bolt, Car,
+  PhoneOutgoing, CircleDot,
 } from 'lucide-react'
 import {
   useHyperXStore,
@@ -20,14 +16,9 @@ import {
   getStatusLabel,
   getStatusIcon,
   type Lead,
-  type LeadStatus,
   type ChatMessage,
-  type FlowNodeStats,
 } from '@/lib/hyperx-store'
 import { useSimulation } from '@/lib/use-simulation'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 // ─── Pulse Dot ──────────────────────────────────────────────────────────────
 
@@ -40,526 +31,149 @@ function PulseDot({ color = 'bg-green-400', size = 'h-2 w-2' }: { color?: string
   )
 }
 
-// ─── Flow Node Box ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB: OVERVIEW
+// ═══════════════════════════════════════════════════════════════════════════
 
-function FlowBox({
-  icon: Icon, label, sublabel, count, color, glow, pulse,
-}: {
-  icon: any; label: string; sublabel?: string; count: number;
-  color: string; glow: string; pulse?: boolean
-}) {
-  return (
-    <div className={`relative rounded-xl border ${color} ${glow} px-4 py-3 text-center min-w-[120px] shadow-lg`}>
-      {pulse && <div className="absolute -top-1 -right-1"><PulseDot color="bg-cyan-400" size="h-1.5 w-1.5" /></div>}
-      <Icon className={`h-5 w-5 mx-auto mb-1 ${color.split(' ')[0]}`} />
-      <div className={`text-2xl font-bold ${color.split(' ')[0]} tabular-nums`}>{count}</div>
-      <div className="text-[11px] text-slate-200 font-semibold mt-0.5">{label}</div>
-      {sublabel && <div className="text-[9px] text-slate-400 mt-0.5">{sublabel}</div>}
-    </div>
-  )
-}
-
-// ─── Flow Arrow ─────────────────────────────────────────────────────────────
-
-function FlowArrow({ label, color = 'text-slate-500', vertical = false, dashed = false }: {
-  label?: string; color?: string; vertical?: boolean; dashed?: boolean
-}) {
-  if (vertical) {
-    return (
-      <div className="flex flex-col items-center py-1">
-        <motion.div
-          animate={{ y: [0, 4, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <ArrowDown className={`h-5 w-5 ${color}`} />
-        </motion.div>
-        {label && <span className={`text-[9px] ${color} mt-0.5 text-center max-w-[80px]`}>{label}</span>}
-      </div>
-    )
-  }
-  return (
-    <div className="flex items-center gap-1 px-1">
-      <motion.div
-        animate={{ x: [0, 4, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-        className={`flex items-center ${dashed ? 'opacity-50' : ''}`}
-      >
-        <div className={`w-6 border-t-2 ${dashed ? 'border-dashed' : ''} ${color.replace('text-', 'border-')}`} />
-        <ArrowRight className={`h-4 w-4 ${color}`} />
-      </motion.div>
-      {label && <span className={`text-[8px] ${color} whitespace-nowrap`}>{label}</span>}
-    </div>
-  )
-}
-
-// ─── Animated Lead Dot ──────────────────────────────────────────────────────
-
-function LeadDot({ color, delay = 0 }: { color: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`w-2.5 h-2.5 rounded-full ${color} shadow-lg`}
-      style={{ boxShadow: `0 0 6px currentColor` }}
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 1] }}
-      transition={{ delay, duration: 0.4 }}
-    />
-  )
-}
-
-// ─── Animated Flowchart (CLEAN STRUCTURED LAYOUT) ───────────────────────────
-
-function AnimatedFlowchart() {
+function OverviewPage() {
   const stats = useHyperXStore((s) => s.stats)
-  const leads = useHyperXStore((s) => s.leads)
   const flow = stats.flowNodes
 
-  // Count leads in various states for animated dots
-  const callingCount = leads.filter(l => ['calling', 'ringing'].includes(l.status)).length
-  const connectedCount = leads.filter(l => ['connected', 'conversation'].includes(l.status)).length
-  const interestedCount = leads.filter(l => ['interested', 'whatsapp_sent', 'whatsapp_yes'].includes(l.status)).length
-  const notInterestedCount = leads.filter(l => ['not_interested'].includes(l.status)).length
-  const noAnswerCount = leads.filter(l => ['no_answer', 'call_later'].includes(l.status)).length
-  const whatsappNoCount = leads.filter(l => ['whatsapp_no'].includes(l.status)).length
-
   return (
-    <div className="bg-slate-900/95 border border-slate-700/50 rounded-xl p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Waypoints className="h-4 w-4 text-cyan-400" />
-        <h3 className="text-sm font-bold text-cyan-300 uppercase tracking-wider">Live Process Flow</h3>
-        <div className="flex-1" />
-        <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-400">
-          <Activity className="h-3 w-3 mr-1" /> Real-time
-        </Badge>
-      </div>
-
-      {/* ── ROW 1: Main Pipeline ── */}
-      <div className="flex items-center justify-center gap-2 flex-wrap">
-        {/* CarWale Source */}
-        <FlowBox
-          icon={Globe}
-          label="CarWale.com"
-          sublabel="Lead Source"
-          count={stats.totalLeadsReceived}
-          color="text-amber-400 border-amber-500/30 bg-amber-500/10"
-          glow="shadow-amber-500/5"
-        />
-
-        <FlowArrow label="leads flow" color="text-amber-400" />
-
-        {/* Hyper X Calling */}
-        <div className="relative">
-          <FlowBox
-            icon={Bot}
-            label="Hyper X Bot"
-            sublabel="Initiates Call"
-            count={flow.calling + flow.ringing}
-            color="text-cyan-400 border-cyan-500/30 bg-cyan-500/10"
-            glow="shadow-cyan-500/5"
-            pulse
-          />
-          {/* Animated dots showing active calls */}
-          {callingCount > 0 && (
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-              {Array.from({ length: Math.min(callingCount, 5) }).map((_, i) => (
-                <LeadDot key={i} color="bg-cyan-400" delay={i * 0.1} />
-              ))}
-            </div>
-          )}
+    <div className="p-6 max-w-6xl mx-auto space-y-8">
+      {/* Hero */}
+      <div className="text-center py-8">
+        <div className="inline-block bg-amber-500/12 border border-amber-500/30 text-amber-400 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wider mb-4">
+          TOYOTA × HYPERX LEAD QUALIFICATION ENGINE
         </div>
-
-        <FlowArrow label="ringing" color="text-cyan-400" />
-
-        {/* Ringing */}
-        <FlowBox
-          icon={Phone}
-          label="Ringing"
-          sublabel="Customer phone"
-          count={flow.ringing}
-          color="text-yellow-400 border-yellow-500/30 bg-yellow-500/10"
-          glow="shadow-yellow-500/5"
-        />
-
-        <FlowArrow label="pickup" color="text-green-400" />
-
-        {/* Connected / Conversation */}
-        <div className="relative">
-          <FlowBox
-            icon={MessageSquare}
-            label="Connected"
-            sublabel="In Conversation"
-            count={flow.connected + flow.conversation}
-            color="text-green-400 border-green-500/30 bg-green-500/10"
-            glow="shadow-green-500/5"
-          />
-          {connectedCount > 0 && (
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-              {Array.from({ length: Math.min(connectedCount, 5) }).map((_, i) => (
-                <LeadDot key={i} color="bg-green-400" delay={i * 0.15} />
-              ))}
+        <h1 className="text-4xl font-extrabold leading-tight mb-3">
+          Convert Aggregator Leads<br />into <span className="text-amber-400">Qualified Buyers</span>
+        </h1>
+        <p className="text-slate-400 text-sm max-w-xl mx-auto mb-6">
+          HyperX uses an AI voice bot to instantly engage every incoming lead — running simultaneous calls, qualifying interest, and routing hot prospects directly into Toyota CRM.
+        </p>
+        <div className="flex justify-center gap-8 flex-wrap">
+          {[
+            { num: '~10s', label: 'Avg call connect' },
+            { num: '30 hrs', label: 'Total retry window' },
+            { num: '4 +WA', label: 'Touch attempts' },
+            { num: '100%', label: 'Leads auto-classified' },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <div className="text-2xl font-extrabold text-amber-400">{s.num}</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">{s.label}</div>
             </div>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* ── SPLIT: Three outcomes ── */}
-      <div className="mt-4 flex items-start justify-center gap-4">
-        {/* LEFT: No Answer / Call Later path */}
-        <div className="flex flex-col items-center gap-2 min-w-[140px]">
-          <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">No Pickup</div>
-
-          <FlowArrow label="no answer" color="text-gray-400" vertical />
-
-          <div className="relative">
-            <FlowBox
-              icon={PhoneMissed}
-              label="No Answer"
-              sublabel="or Call Later"
-              count={flow.no_answer + flow.call_later}
-              color="text-orange-400 border-orange-500/30 bg-orange-500/10"
-              glow="shadow-orange-500/5"
-            />
-            {noAnswerCount > 0 && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-                {Array.from({ length: Math.min(noAnswerCount, 4) }).map((_, i) => (
-                  <LeadDot key={i} color="bg-orange-400" delay={i * 0.1} />
-                ))}
+      {/* End-to-End Flow */}
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">End-to-End Flow</div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {[
+            { icon: Globe, label: 'Aggregator', sub: 'Leads stream in', gold: true },
+            { icon: Bolt, label: 'HyperX Engine', sub: 'AI triggers calls', gold: true },
+            { icon: Phone, label: 'Voice Bot', sub: 'Simultaneous calls', gold: false },
+            { icon: MessageSquare, label: 'Qualification', sub: 'AI chat + retry', gold: false },
+            { icon: CheckCircle2, label: 'Toyota CRM', sub: 'Interested leads', gold: false, green: true },
+            { icon: Trash2, label: 'Junk Bin', sub: 'Not interested', gold: false, red: true },
+          ].map((node, i, arr) => (
+            <React.Fragment key={node.label}>
+              <div className={`rounded-xl border p-4 min-w-[130px] text-center flex-shrink-0 ${
+                node.gold ? 'border-amber-500/30 bg-amber-500/8'
+                : node.green ? 'border-green-500/30 bg-green-500/7'
+                : node.red ? 'border-red-500/30 bg-red-500/7'
+                : 'border-slate-700/30 bg-slate-800/50'
+              }`}>
+                <node.icon className={`h-5 w-5 mx-auto mb-2 ${
+                  node.gold ? 'text-amber-400' : node.green ? 'text-green-400' : node.red ? 'text-red-400' : 'text-amber-400/70'
+                }`} />
+                <div className="text-xs font-bold text-white">{node.label}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">{node.sub}</div>
               </div>
-            )}
-          </div>
-
-          <FlowArrow label="retry cycle" color="text-orange-400" vertical />
-
-          {/* Retry Schedule */}
-          <div className="bg-slate-800/80 border border-orange-500/20 rounded-lg p-2.5 w-full text-center">
-            <RefreshCw className="h-4 w-4 mx-auto mb-1 text-orange-400" />
-            <div className="text-[10px] font-semibold text-orange-300">Retry Schedule</div>
-            <div className="space-y-0.5 mt-1.5">
-              <div className="text-[9px] text-slate-400 flex justify-between">
-                <span>1st retry</span><span className="text-orange-400">after 2 hrs</span>
-              </div>
-              <div className="text-[9px] text-slate-400 flex justify-between">
-                <span>2nd retry</span><span className="text-orange-400">after 4 hrs</span>
-              </div>
-              <div className="text-[9px] text-slate-400 flex justify-between">
-                <span>3rd retry</span><span className="text-orange-400">after 24 hrs</span>
-              </div>
-            </div>
-            <div className="text-[8px] text-orange-400/60 mt-1.5 border-t border-orange-500/10 pt-1">
-              Total: 30 hrs window
-            </div>
-          </div>
-
-          <FlowArrow label="4th fail" color="text-emerald-400" vertical dashed />
-
-          {/* WhatsApp after 4th fail */}
-          <FlowBox
-            icon={MessageCircle}
-            label="WhatsApp"
-            sublabel="After 4th attempt"
-            count={flow.whatsapp_sent}
-            color="text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-            glow="shadow-emerald-500/5"
-          />
-        </div>
-
-        {/* CENTER: Interested path */}
-        <div className="flex flex-col items-center gap-2 min-w-[140px]">
-          <div className="text-[10px] text-green-400 font-semibold uppercase tracking-wider mb-1">Interested</div>
-
-          <FlowArrow label="yes" color="text-green-400" vertical />
-
-          <div className="relative">
-            <FlowBox
-              icon={CheckCircle2}
-              label="Interested"
-              sublabel="Wants to explore"
-              count={flow.interested + flow.whatsapp_yes}
-              color="text-green-400 border-green-500/30 bg-green-500/10"
-              glow="shadow-green-500/5"
-            />
-            {interestedCount > 0 && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-                {Array.from({ length: Math.min(interestedCount, 4) }).map((_, i) => (
-                  <LeadDot key={i} color="bg-green-400" delay={i * 0.1} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <FlowArrow label="confirm" color="text-emerald-400" vertical />
-
-          {/* WhatsApp confirmation */}
-          <FlowBox
-            icon={MessageCircle}
-            label="WhatsApp"
-            sublabel="Confirmation msg"
-            count={flow.whatsapp_sent + flow.whatsapp_yes}
-            color="text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-            glow="shadow-emerald-500/5"
-          />
-
-          <FlowArrow label="YES" color="text-green-400" vertical />
-
-          {/* TOYOTA CRM - Big final node */}
-          <div className="relative">
-            <div className="bg-emerald-500/15 border-2 border-emerald-500/40 rounded-xl px-5 py-4 text-center min-w-[140px] shadow-xl shadow-emerald-500/10">
-              <CheckCircle2 className="h-7 w-7 mx-auto mb-1 text-emerald-400" />
-              <div className="text-3xl font-bold text-emerald-400 tabular-nums">{flow.crm_transferred}</div>
-              <div className="text-sm font-bold text-emerald-300">Toyota CRM</div>
-              <div className="text-[10px] text-emerald-400/60">Qualified Leads</div>
-              <div className="absolute -top-1 -right-1"><PulseDot color="bg-emerald-400" size="h-2 w-2" /></div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Not Interested path */}
-        <div className="flex flex-col items-center gap-2 min-w-[140px]">
-          <div className="text-[10px] text-red-400 font-semibold uppercase tracking-wider mb-1">Not Interested</div>
-
-          <FlowArrow label="no" color="text-red-400" vertical />
-
-          <div className="relative">
-            <FlowBox
-              icon={XCircle}
-              label="Not Interested"
-              sublabel="Declined offer"
-              count={flow.not_interested}
-              color="text-red-400 border-red-500/30 bg-red-500/10"
-              glow="shadow-red-500/5"
-            />
-            {notInterestedCount > 0 && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-                {Array.from({ length: Math.min(notInterestedCount, 4) }).map((_, i) => (
-                  <LeadDot key={i} color="bg-red-400" delay={i * 0.1} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <FlowArrow label="removed" color="text-red-400" vertical />
-
-          {/* JUNK BIN */}
-          <div className="bg-red-500/15 border-2 border-red-500/30 rounded-xl px-5 py-4 text-center min-w-[140px] shadow-xl shadow-red-500/5">
-            <Trash2 className="h-6 w-6 mx-auto mb-1 text-red-400" />
-            <div className="text-2xl font-bold text-red-400 tabular-nums">{flow.junk}</div>
-            <div className="text-sm font-bold text-red-300">Junk Bin</div>
-            <div className="text-[10px] text-red-400/60">Removed from calling list</div>
-          </div>
-
-          {/* WhatsApp No → also Junk */}
-          {whatsappNoCount > 0 && (
-            <>
-              <div className="text-[9px] text-slate-500 mt-1">WhatsApp "NO" also goes here</div>
-              <div className="flex items-center gap-1">
-                <MessageCircle className="h-3 w-3 text-red-400/60" />
-                <span className="text-[9px] text-red-400/60">WhatsApp No: {whatsappNoCount}</span>
-              </div>
-            </>
-          )}
+              {i < arr.length - 1 && (
+                <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-slate-500 text-lg flex-shrink-0">
+                  <ArrowRight className="h-4 w-4" />
+                </motion.span>
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
-      {/* Failed row */}
-      <div className="mt-3 flex justify-end pr-4">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] text-slate-500">WhatsApp no response 48hr →</span>
-          <div className="bg-gray-500/10 border border-gray-500/20 rounded-lg px-3 py-1.5 text-center">
-            <AlertTriangle className="h-3.5 w-3.5 mx-auto mb-0.5 text-gray-400" />
-            <span className="text-sm font-bold text-gray-400">{flow.failed}</span>
-            <span className="text-[9px] text-gray-400 ml-1">Failed</span>
+      {/* Call Outcomes */}
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Call Outcomes</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="border border-green-500/30 bg-green-500/6 rounded-xl p-4">
+            <CheckCircle2 className="h-5 w-5 text-green-400 mb-2" />
+            <div className="text-sm font-bold text-white">Customer Says YES</div>
+            <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+              WhatsApp confirmation sent: &quot;Our Toyota senior will get in touch.&quot; Lead forwarded to Toyota CRM immediately.
+            </div>
+          </div>
+          <div className="border border-amber-500/30 bg-amber-500/6 rounded-xl p-4">
+            <Timer className="h-5 w-5 text-amber-400 mb-2" />
+            <div className="text-sm font-bold text-white">Call Back / Not Picked</div>
+            <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+              Retry at +2hr → +4hr → +24hr. Then WhatsApp. If no YES within 48hr of WA → mark as Junk.
+            </div>
+          </div>
+          <div className="border border-red-500/30 bg-red-500/6 rounded-xl p-4">
+            <XCircle className="h-5 w-5 text-red-400 mb-2" />
+            <div className="text-sm font-bold text-white">Customer Says NO</div>
+            <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+              Immediately removed from call list. Marked as Junk in system. No further outreach.
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
 
-// ─── Time Jump Buttons ──────────────────────────────────────────────────────
-
-function TimeJumpBar() {
-  const { timeJump, isSimulating, startSimulation } = useSimulation()
-  const simTime = useHyperXStore((s) => s.simTime)
-  const speed = useHyperXStore((s) => s.simulationSpeed)
-  const setSpeed = useHyperXStore((s) => s.setSimulationSpeed)
-
-  const timeButtons = [
-    { hours: 2, label: '2 Hrs Complete', color: 'from-amber-500 to-orange-500', active: simTime >= 2 },
-    { hours: 4, label: '4 Hrs Complete', color: 'from-orange-500 to-red-500', active: simTime >= 4 },
-    { hours: 24, label: '24 Hrs Complete', color: 'from-red-500 to-pink-500', active: simTime >= 24 },
-    { hours: 48, label: '48 Hrs Complete', color: 'from-pink-500 to-purple-500', active: simTime >= 48 },
-  ]
-
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <div className="flex items-center gap-1 bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1">
-        <Clock className="h-3 w-3 text-cyan-400" />
-        <span className="text-[10px] text-slate-400 mr-1">Sim Time:</span>
-        <span className="text-xs font-bold text-cyan-400">{simTime.toFixed(1)} hrs</span>
-      </div>
-      <div className="flex gap-1.5">
-        {timeButtons.map((btn) => (
-          <Button key={btn.hours} size="sm" onClick={() => timeJump(btn.hours)}
-            className={`text-[10px] h-7 px-2.5 ${btn.active ? `bg-gradient-to-r ${btn.color} text-white shadow-lg` : 'bg-slate-800/80 border border-slate-600/30 text-slate-300 hover:bg-slate-700/80'}`}>
-            <FastForward className="h-3 w-3 mr-1" /> {btn.label}
-          </Button>
-        ))}
-      </div>
-      <div className="flex items-center gap-1 bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1">
-        <span className="text-[10px] text-slate-400">Speed:</span>
-        {[1, 2, 4, 8].map((s) => (
-          <button key={s} onClick={() => setSpeed(s)}
-            className={`text-[10px] px-1.5 py-0.5 rounded transition-all ${speed === s ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-500 hover:text-slate-300'}`}>
-            {s}x
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Stats Bar ──────────────────────────────────────────────────────────────
-
-function StatsBar() {
-  const stats = useHyperXStore((s) => s.stats)
-  const statItems = [
-    { label: 'Leads In', value: stats.totalLeadsReceived, icon: Inbox, color: 'text-amber-400', bg: 'from-amber-500/10 to-orange-500/10' },
-    { label: 'Calls Made', value: stats.totalCallsMade, icon: PhoneCall, color: 'text-cyan-400', bg: 'from-cyan-500/10 to-teal-500/10' },
-    { label: 'Active', value: stats.totalCallsActive, icon: Activity, color: 'text-yellow-400', bg: 'from-yellow-500/10 to-amber-500/10' },
-    { label: 'WhatsApp', value: stats.totalWhatsappSent, icon: MessageCircle, color: 'text-emerald-400', bg: 'from-emerald-500/10 to-green-500/10' },
-    { label: 'CRM', value: stats.totalInterested, icon: CheckCircle2, color: 'text-green-400', bg: 'from-green-500/10 to-emerald-500/10' },
-    { label: 'Junk', value: stats.totalJunk, icon: Trash2, color: 'text-red-400', bg: 'from-red-500/10 to-orange-500/10' },
-    { label: 'Failed', value: stats.totalFailed, icon: XCircle, color: 'text-gray-400', bg: 'from-gray-500/10 to-slate-500/10' },
-    { label: 'Conversion', value: `${stats.conversionRate.toFixed(1)}%`, icon: TrendingUp, color: 'text-purple-400', bg: 'from-purple-500/10 to-pink-500/10' },
-  ]
-  return (
-    <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
-      {statItems.map((item, idx) => (
-        <motion.div key={item.label} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-          className={`bg-gradient-to-br ${item.bg} border border-slate-700/30 rounded-xl p-2.5 text-center`}>
-          <item.icon className={`h-4 w-4 mx-auto mb-1 ${item.color}`} />
-          <div className="text-xl font-bold text-white">{item.value}</div>
-          <div className="text-[10px] text-slate-400">{item.label}</div>
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
-// ─── Aggregator Panel ───────────────────────────────────────────────────────
-
-function AggregatorPanel() {
-  const leads = useHyperXStore((s) => s.leads)
-  const selectedLeadId = useHyperXStore((s) => s.selectedLeadId)
-  const setSelected = useHyperXStore((s) => s.setSelectedLeadId)
-
-  return (
-    <div className="h-full flex flex-col bg-slate-900/95 border border-slate-700/50 rounded-xl overflow-hidden">
-      <div className="p-3 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-b border-amber-500/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-              <Globe className="h-4 w-4 text-amber-400" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-amber-300">CARWALE.COM</h2>
-              <p className="text-[10px] text-amber-400/60">Lead Aggregator Stream</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <PulseDot color="bg-amber-400" />
-            <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-300 bg-amber-500/10">
-              {leads.filter((l) => !['crm_transferred', 'junk', 'failed'].includes(l.status)).length} Active
-            </Badge>
-          </div>
+      {/* Retry Timeline */}
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+          Retry & Engagement Timeline (Total Window: 30 Hours)
         </div>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1.5">
-          <AnimatePresence mode="popLayout">
-            {leads.slice(0, 40).map((lead) => (
-              <motion.div key={lead.id} layout
-                initial={{ opacity: 0, x: -30, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                onClick={() => setSelected(lead.id === selectedLeadId ? null : lead.id)}
-                className={`cursor-pointer rounded-lg border p-2 transition-all ${
-                  lead.id === selectedLeadId ? 'border-cyan-500/50 bg-cyan-500/10 ring-1 ring-cyan-500/30'
-                  : `border-slate-700/30 ${getStatusBgColor(lead.status)} hover:border-slate-600/50`
-                }`}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px]">{getStatusIcon(lead.status)}</span>
-                    <span className="text-xs font-semibold text-slate-200">{lead.id}</span>
+        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-5">
+          <div className="flex items-center gap-0 overflow-x-auto pb-2">
+            {[
+              { num: '1', time: 'T+0', label: '1st Call', color: 'border-amber-500 bg-amber-500/15 text-amber-400' },
+              { num: '2', time: 'T+2hr', label: '2nd Call', color: 'border-amber-500 bg-amber-500/15 text-amber-400' },
+              { num: '3', time: 'T+6hr', label: '3rd Call', color: 'border-orange-500 bg-orange-500/15 text-orange-400' },
+              { num: '4', time: 'T+30hr', label: '4th Call', color: 'border-blue-500 bg-blue-500/12 text-blue-400' },
+              { num: 'WA', time: 'Post 4th', label: 'WhatsApp', color: 'border-blue-500 bg-blue-500/12 text-blue-400' },
+              { num: '✕', time: '+48hr', label: '→ Junk', color: 'border-red-500 bg-red-500/10 text-red-400' },
+            ].map((step, i, arr) => (
+              <React.Fragment key={step.label}>
+                <div className="flex-shrink-0 text-center">
+                  <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold ${step.color} mx-auto mb-1`}>
+                    {step.num}
                   </div>
-                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${getStatusBgColor(lead.status)} ${getStatusColor(lead.status)} border-0`}>
-                    {getStatusLabel(lead.status)}
-                  </Badge>
+                  <div className="text-[10px] font-semibold text-slate-300">{step.time}</div>
+                  <div className="text-[9px] text-slate-500">{step.label}</div>
                 </div>
-                <div className="text-[11px] text-slate-300 truncate">{lead.name}</div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-[10px] text-slate-500">CarWale.com</span>
-                  {lead.attemptCount > 0 && <span className="text-[10px] text-slate-500">Attempt {lead.attemptCount}/{lead.maxAttempts}</span>}
-                </div>
-              </motion.div>
+                {i < arr.length - 1 && (
+                  <div className="h-0.5 w-10 bg-amber-500/15 flex-shrink-0 relative top-[-14px] mx-1" />
+                )}
+              </React.Fragment>
             ))}
-          </AnimatePresence>
+          </div>
+          <div className="text-[11px] text-slate-500 mt-4 leading-relaxed">
+            After 4th call attempt — WhatsApp message sent asking: <strong className="text-slate-200">&quot;Are you interested in the Toyota offer? Reply YES or NO.&quot;</strong><br />
+            YES → Lead routed to Toyota CRM &nbsp;|&nbsp; NO / No reply within 48hr → Marked as Junk
+          </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
 
-// ─── Call Card ──────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB: LIVE PLATFORM
+// ═══════════════════════════════════════════════════════════════════════════
 
-function CallCard({ lead, isSelected, onSelect }: { lead: Lead; isSelected: boolean; onSelect: () => void }) {
-  const isOnCall = ['calling', 'ringing', 'connected', 'conversation'].includes(lead.status)
-  return (
-    <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -20 }}
-      onClick={onSelect}
-      className={`cursor-pointer rounded-xl border p-3 transition-all ${
-        isSelected ? 'border-cyan-400/50 bg-cyan-900/30 ring-2 ring-cyan-400/20'
-        : isOnCall ? 'border-cyan-500/20 bg-slate-800/80 hover:border-cyan-500/40'
-        : 'border-slate-700/30 bg-slate-800/50 hover:border-slate-600/50'
-      }`}>
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          {isOnCall && <PulseDot color="bg-green-400" size="h-2.5 w-2.5" />}
-          <span className="text-sm font-bold text-white">{lead.name}</span>
-        </div>
-        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${getStatusBgColor(lead.status)} ${getStatusColor(lead.status)} border-0`}>
-          {getStatusLabel(lead.status)}
-        </Badge>
-      </div>
-      <div className="flex items-center justify-between text-[11px]">
-        <span className="text-slate-400">{lead.phone}</span>
-        <span className="text-slate-500">Attempt {lead.attemptCount}/{lead.maxAttempts}</span>
-      </div>
-      {lead.selectedCar && (
-        <div className="mt-1 text-[10px] text-cyan-400/80 flex items-center gap-1">
-          <Target className="h-3 w-3" /> Toyota {lead.selectedCar}
-        </div>
-      )}
-      {isOnCall && (
-        <div className="mt-2 flex items-center gap-1.5">
-          <Volume2 className="h-3 w-3 text-green-400 animate-pulse" />
-          <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
-            <motion.div className="h-full bg-green-400 rounded-full" animate={{ width: ['0%', '100%'] }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
-          </div>
-          <span className="text-[10px] text-green-400">LIVE</span>
-        </div>
-      )}
-      {lead.status === 'whatsapp_sent' && (
-        <div className="mt-2 flex items-center gap-1.5">
-          <MessageCircle className="h-3 w-3 text-emerald-400 animate-pulse" />
-          <span className="text-[10px] text-emerald-400">Waiting for WhatsApp response...</span>
-        </div>
-      )}
-    </motion.div>
-  )
-}
-
-// ─── Live Conversation Panel (PROMINENT TEXT-BASED) ─────────────────────────
-
-function LiveConversationPanel() {
+function LivePlatformPage() {
   const leads = useHyperXStore((s) => s.leads)
   const selectedLeadId = useHyperXStore((s) => s.selectedLeadId)
   const setSelected = useHyperXStore((s) => s.setSelectedLeadId)
@@ -568,221 +182,224 @@ function LiveConversationPanel() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [selectedLead?.chatMessages?.length])
 
   const activeLeads = leads.filter((l) => !['crm_transferred', 'junk', 'failed'].includes(l.status))
+  const crmLeads = leads.filter((l) => l.status === 'crm_transferred')
+  const junkLeads = leads.filter((l) => l.status === 'junk' || l.status === 'failed')
 
-  // Auto-select first active lead with conversation
+  // Auto-select first lead with conversation
   useEffect(() => {
     if (!selectedLeadId && activeLeads.length > 0) {
-      const withChat = activeLeads.find(l => l.chatMessages.length > 0 && l.chatMessages.some(m => m.speaker !== 'system'))
+      const withChat = activeLeads.find(l => l.chatMessages.some(m => m.speaker !== 'system'))
       if (withChat) setSelected(withChat.id)
     }
   }, [activeLeads, selectedLeadId, setSelected])
 
   return (
-    <div className="h-full flex flex-col bg-slate-900/95 border border-cyan-500/20 rounded-xl overflow-hidden">
-      {/* Header */}
-      <div className="p-3 bg-gradient-to-r from-cyan-600/20 to-teal-600/20 border-b border-cyan-500/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-cyan-400" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-cyan-300">HYPER X — Live Calls</h2>
-              <p className="text-[10px] text-cyan-400/60">Text-based Conversation View</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-center">
-              <div className="text-lg font-bold text-cyan-300">{stats.totalCallsActive}</div>
-              <div className="text-[9px] text-cyan-400/60">Active</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-white">{stats.totalCallsMade}</div>
-              <div className="text-[9px] text-slate-400">Total</div>
-            </div>
-          </div>
+    <div className="flex flex-col h-[calc(100vh-80px)]">
+      {/* HyperX Strip */}
+      <div className="bg-gradient-to-r from-amber-500/10 to-amber-500/4 border border-amber-500/25 rounded-xl p-3 mb-3 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <Bolt className="h-5 w-5 text-amber-400" />
+          <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">HyperX Engine</span>
         </div>
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md px-2 py-1 text-center">
-            <div className="text-xs font-bold text-yellow-300">{leads.filter(l => ['ringing', 'calling'].includes(l.status)).length}</div>
-            <div className="text-[8px] text-yellow-400/60">Ringing</div>
-          </div>
-          <div className="bg-green-500/10 border border-green-500/20 rounded-md px-2 py-1 text-center">
-            <div className="text-xs font-bold text-green-300">{leads.filter(l => ['connected', 'conversation'].includes(l.status)).length}</div>
-            <div className="text-[8px] text-green-400/60">On Call</div>
-          </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-1 text-center">
-            <div className="text-xs font-bold text-emerald-300">{leads.filter(l => l.status === 'whatsapp_sent').length}</div>
-            <div className="text-[8px] text-emerald-400/60">WhatsApp</div>
-          </div>
+        <div className="flex gap-6">
+          {[
+            { num: stats.totalCallsActive, label: 'Active Calls', color: 'text-amber-400' },
+            { num: stats.totalCallsMade, label: 'Total Calls', color: 'text-amber-400' },
+            { num: stats.totalInterested, label: 'Interested', color: 'text-green-400' },
+            { num: stats.totalJunk, label: 'Junk', color: 'text-red-400' },
+            { num: `${stats.conversionRate.toFixed(0)}%`, label: 'Conv. Rate', color: 'text-amber-400' },
+          ].map(m => (
+            <div key={m.label} className="text-center">
+              <div className={`text-lg font-extrabold ${m.color}`}>{m.num}</div>
+              <div className="text-[9px] text-slate-500 uppercase">{m.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="flex-1 flex min-h-0">
-        {/* Left: Active Calls List */}
-        <div className="w-2/5 border-r border-slate-700/30 flex flex-col">
-          <div className="p-2 border-b border-slate-700/30 flex items-center justify-between">
-            <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Active Calls</h3>
-            <Badge variant="outline" className="text-[9px] border-cyan-500/30 text-cyan-400 bg-cyan-500/10">
-              {activeLeads.length} live
-            </Badge>
+      {/* 3-Column Grid */}
+      <div className="flex-1 grid grid-cols-[240px_1fr_200px] gap-3 min-h-0">
+        {/* LEFT: Aggregator */}
+        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl flex flex-col overflow-hidden">
+          <div className="p-3 border-b border-amber-500/15 flex items-center justify-between flex-shrink-0">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Database className="h-3.5 w-3.5" /> Aggregator
+            </span>
+            <span className="bg-amber-500 text-black rounded-full px-2 py-0.5 text-[10px] font-bold">{leads.filter(l => !['crm_transferred','junk','failed'].includes(l.status)).length}</span>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="p-1.5 space-y-1.5">
-              <AnimatePresence mode="popLayout">
-                {activeLeads.map((lead) => (
-                  <CallCard key={lead.id} lead={lead} isSelected={lead.id === selectedLeadId}
-                    onSelect={() => setSelected(lead.id === selectedLeadId ? null : lead.id)} />
-                ))}
-              </AnimatePresence>
-              {activeLeads.length === 0 && (
-                <div className="text-center text-slate-600 text-xs py-8">
-                  <Phone className="h-8 w-8 mx-auto mb-2 text-slate-700" /> Waiting for leads...
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+            <AnimatePresence mode="popLayout">
+              {leads.slice(0, 30).map(lead => (
+                <motion.div key={lead.id} layout
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                  onClick={() => setSelected(lead.id === selectedLeadId ? null : lead.id)}
+                  className={`bg-[#1a1a26] border rounded-lg p-2.5 cursor-pointer transition-all flex items-center gap-2.5 ${
+                    lead.id === selectedLeadId ? 'border-amber-500/40 bg-amber-500/8'
+                    : `border-amber-500/10 hover:border-amber-500/25`
+                  }`}>
+                  <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-[11px] font-bold text-amber-400 flex-shrink-0">
+                    {lead.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-semibold text-white truncate">{lead.name}</div>
+                    <div className="text-[9px] text-slate-500">{lead.phone}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <div className={`w-2 h-2 rounded-full ${
+                      ['calling','ringing'].includes(lead.status) ? 'bg-amber-400 animate-pulse'
+                      : ['connected','conversation'].includes(lead.status) ? 'bg-green-400'
+                      : ['interested','whatsapp_sent','whatsapp_yes'].includes(lead.status) ? 'bg-green-500'
+                      : ['not_interested','whatsapp_no'].includes(lead.status) ? 'bg-red-400'
+                      : ['no_answer','call_later'].includes(lead.status) ? 'bg-orange-400'
+                      : lead.status === 'crm_transferred' ? 'bg-green-600'
+                      : lead.status === 'junk' ? 'bg-red-500'
+                      : 'bg-slate-500'
+                    }`} />
+                    <span className="text-[8px] text-slate-500 text-right">{getStatusLabel(lead.status)}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Right: Live Conversation Text */}
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Conversation header */}
-          <div className="px-4 py-2 bg-slate-800/60 border-b border-slate-700/30">
-            {selectedLead ? (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${
-                    ['ringing', 'calling', 'connected', 'conversation'].includes(selectedLead.status) ? 'bg-green-400 animate-pulse' : 'bg-slate-500'
-                  }`} />
-                  <span className="text-sm font-semibold text-white">{selectedLead.name}</span>
-                  <span className="text-[11px] text-slate-400">{selectedLead.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={`text-[10px] px-2 py-0.5 ${getStatusBgColor(selectedLead.status)} ${getStatusColor(selectedLead.status)} border-0`}>
-                    {getStatusLabel(selectedLead.status)}
-                  </Badge>
-                  <span className="text-[10px] text-slate-500">Attempt {selectedLead.attemptCount}/{selectedLead.maxAttempts}</span>
-                  {selectedLead.selectedCar && (
-                    <span className="text-[10px] text-cyan-400/80 flex items-center gap-0.5">
-                      <Target className="h-2.5 w-2.5" /> {selectedLead.selectedCar}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-slate-500">
-                <MessageSquare className="h-4 w-4" />
-                <span className="text-xs">Select a lead to view live conversation</span>
-              </div>
-            )}
-          </div>
+        {/* CENTER: Call Stream + Chat */}
+        <div className="flex flex-col gap-3 min-h-0">
+          {/* Call Cards */}
+          <div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+            <AnimatePresence mode="popLayout">
+              {activeLeads.map(lead => {
+                const isOnCall = ['calling','ringing','connected','conversation'].includes(lead.status)
+                const isCustomerMsg = lead.chatMessages.filter(m => m.speaker === 'customer')
+                const lastBotMsg = [...lead.chatMessages].reverse().find(m => m.speaker === 'bot')
+                const lastCustMsg = [...lead.chatMessages].reverse().find(m => m.speaker === 'customer')
 
-          {/* Chat messages - THE MAIN TEXT CONVERSATION */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 bg-slate-950/50">
-            {!selectedLead ? (
-              <div className="flex-1 flex items-center justify-center text-slate-500 text-sm h-full">
-                <div className="text-center py-16">
-                  <div className="h-16 w-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
-                    <MessageSquare className="h-8 w-8 text-slate-600" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-400">No conversation selected</p>
-                  <p className="text-[11px] text-slate-500 mt-1">Click any active call to see the bot ↔ customer text conversation</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Call info banner */}
-                <div className="text-center py-2">
-                  <div className="inline-flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700/30">
-                    <PhoneCall className="h-3.5 w-3.5 text-cyan-400" />
-                    <span className="text-[11px] text-slate-300">
-                      Call to <span className="text-white font-semibold">{selectedLead.name}</span> from CarWale.com about Toyota {selectedLead.selectedCar}
-                    </span>
-                    <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${getStatusBgColor(selectedLead.status)} ${getStatusColor(selectedLead.status)} border-0`}>
-                      {getStatusLabel(selectedLead.status)}
-                    </Badge>
-                  </div>
-                </div>
+                return (
+                  <motion.div key={lead.id} layout
+                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                    onClick={() => setSelected(lead.id === selectedLeadId ? null : lead.id)}
+                    className={`bg-[#12121a] border rounded-xl p-3 cursor-pointer transition-all ${
+                      lead.id === selectedLeadId ? 'border-amber-500/40'
+                      : isOnCall ? 'border-amber-500/20 hover:border-amber-500/35'
+                      : 'border-slate-700/25 hover:border-slate-600/40'
+                    }`}>
+                    {/* Card top */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13px] font-semibold text-white">{lead.name}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                        isOnCall ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : lead.status === 'interested' ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : lead.status === 'whatsapp_sent' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                        : ['no_answer','call_later'].includes(lead.status) ? 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+                        : 'bg-slate-700/30 text-slate-400 border border-slate-600/20'
+                      }`}>
+                        {isOnCall && <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse mr-1" />}
+                        {getStatusLabel(lead.status)}
+                      </span>
+                    </div>
 
-                {/* Messages */}
-                {selectedLead.chatMessages.map((msg, i) => (
-                  <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-                    className={msg.speaker === 'system' ? 'flex justify-center' : 'flex gap-3'}>
-
-                    {msg.speaker === 'system' ? (
-                      <div className="flex items-center gap-2 py-1">
-                        <div className="h-px flex-1 bg-slate-700/30" />
-                        <span className="text-[10px] text-slate-500 bg-slate-800/60 px-3 py-1 rounded-full">{msg.text}</span>
-                        <div className="h-px flex-1 bg-slate-700/30" />
+                    {/* Script box */}
+                    {(lastBotMsg || lastCustMsg) && (
+                      <div className="bg-[#1a1a26] rounded-md px-3 py-2 text-[11px] text-slate-300 border-l-2 border-amber-500/30 leading-relaxed mb-2">
+                        {lastCustMsg ? (
+                          <>
+                            <div className="text-[9px] uppercase font-bold text-green-400 tracking-wider mb-1">Customer</div>
+                            {lastCustMsg.text}
+                          </>
+                        ) : lastBotMsg ? (
+                          <>
+                            <div className="text-[9px] uppercase font-bold text-amber-400 tracking-wider mb-1">HyperX Bot</div>
+                            {lastBotMsg.text}
+                          </>
+                        ) : null}
                       </div>
-                    ) : (
-                      <>
-                        {/* Avatar */}
-                        <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center border ${
-                          msg.speaker === 'bot'
-                            ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400'
-                            : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                        }`}>
-                          {msg.speaker === 'bot' ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-                        </div>
+                    )}
 
-                        {/* Message bubble */}
-                        <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                          msg.speaker === 'bot'
-                            ? 'bg-cyan-900/30 border border-cyan-500/10 rounded-tl-sm'
-                            : 'bg-slate-700/40 border border-slate-600/20 rounded-tr-sm'
-                        }`}>
-                          <div className={`text-[10px] font-bold mb-1 ${
-                            msg.speaker === 'bot' ? 'text-cyan-400' : 'text-amber-400'
-                          }`}>
-                            {msg.speaker === 'bot' ? 'Hyper X Bot' : selectedLead.name.split(' ')[0]}
-                            {msg.speaker === 'bot' && <span className="text-cyan-500/40 ml-1 font-normal">(Voice AI)</span>}
-                            {msg.speaker === 'customer' && <span className="text-amber-500/40 ml-1 font-normal">(Customer)</span>}
-                          </div>
-                          <div className={`text-[13px] leading-relaxed ${
-                            msg.speaker === 'bot' ? 'text-cyan-50' : 'text-slate-200'
-                          }`}>
-                            {msg.text}
-                          </div>
-                        </div>
-                      </>
+                    {/* Meta row */}
+                    <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Attempt {lead.attemptCount}/{lead.maxAttempts}</span>
+                      <div className="flex gap-1">
+                        {[1,2,3,4].map(i => (
+                          <div key={i} className={`w-1.5 h-1.5 rounded-full ${
+                            i < lead.attemptCount ? 'bg-amber-400'
+                            : i === lead.attemptCount && isOnCall ? 'bg-amber-400 animate-pulse'
+                            : 'bg-amber-500/15'
+                          }`} />
+                        ))}
+                      </div>
+                      <span className="ml-auto flex items-center gap-1"><Phone className="h-3 w-3" /> {lead.phone}</span>
+                    </div>
+
+                    {/* Timer bar */}
+                    {isOnCall && (
+                      <div className="h-0.5 bg-slate-800 rounded mt-2 overflow-hidden">
+                        <motion.div className="h-full bg-amber-400 rounded"
+                          animate={{ width: ['0%', '100%'] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
+                      </div>
                     )}
                   </motion.div>
-                ))}
-
-                {/* Live indicators */}
-                {['ringing', 'calling'].includes(selectedLead.status) && (
-                  <div className="flex items-center gap-2 text-yellow-400 text-xs justify-center py-2">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                    <span className="text-sm font-medium">Ringing...</span>
-                  </div>
-                )}
-
-                {selectedLead.status === 'conversation' && (
-                  <div className="flex items-center gap-2 text-green-400 text-xs justify-center py-2">
-                    <Volume2 className="h-4 w-4 animate-pulse" />
-                    <span className="text-sm font-medium">Conversation in progress...</span>
-                  </div>
-                )}
-
-                {selectedLead.status === 'connected' && (
-                  <div className="flex items-center gap-2 text-green-400 text-xs justify-center py-2">
-                    <Phone className="h-4 w-4 animate-pulse" />
-                    <span className="text-sm font-medium">Connected — starting conversation...</span>
-                  </div>
-                )}
-              </>
+                )
+              })}
+            </AnimatePresence>
+            {activeLeads.length === 0 && (
+              <div className="text-center text-slate-600 text-xs py-16">
+                <Phone className="h-10 w-10 mx-auto mb-2 text-slate-700" /> Waiting for leads...
+              </div>
             )}
+          </div>
+        </div>
+
+        {/* RIGHT: CRM + Junk */}
+        <div className="flex flex-col gap-3 min-h-0">
+          {/* Junk Bin */}
+          <div className="bg-[#12121a] border border-red-500/20 rounded-xl p-3 text-center flex-shrink-0">
+            <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider flex items-center justify-center gap-1.5 mb-1">
+              <Trash2 className="h-3.5 w-3.5" /> Junk Bin
+            </div>
+            <div className="text-3xl font-extrabold text-red-400">{stats.totalJunk + stats.totalFailed}</div>
+            <div className="text-[9px] text-slate-500">disqualified leads</div>
+            <div className="mt-2 space-y-1 max-h-16 overflow-y-auto">
+              {junkLeads.slice(0, 8).map(l => (
+                <div key={l.id} className="bg-red-500/10 border border-red-500/20 rounded px-1.5 py-0.5 text-[9px] text-red-400 flex items-center gap-1">
+                  <XCircle className="h-2.5 w-2.5" /> {l.name.split(' ')[0]}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Toyota CRM */}
+          <div className="flex-1 bg-[#12121a] border border-green-500/25 rounded-xl flex flex-col overflow-hidden min-h-0">
+            <div className="bg-green-500/8 p-3 border-b border-green-500/15 flex items-center justify-between flex-shrink-0">
+              <div>
+                <div className="text-[11px] font-bold text-green-400 uppercase tracking-wider flex items-center gap-1">
+                  <Car className="h-3.5 w-3.5" /> Toyota CRM
+                </div>
+                <div className="text-[9px] text-slate-500">Qualified Leads</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-extrabold text-green-400">{crmLeads.length}</div>
+                <div className="text-[9px] text-slate-500">interested</div>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+              <AnimatePresence mode="popLayout">
+                {crmLeads.map(lead => (
+                  <motion.div key={lead.id} layout
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                    className="bg-green-500/7 border border-green-500/20 rounded-lg px-2.5 py-2">
+                    <div className="text-[11px] font-semibold text-white">{lead.name}</div>
+                    <div className="text-[9px] text-slate-500">{lead.phone}</div>
+                    <span className="inline-block bg-green-500/15 text-green-400 rounded px-1.5 py-0.5 text-[9px] font-semibold mt-1">
+                      ✓ Interested
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
@@ -790,108 +407,182 @@ function LiveConversationPanel() {
   )
 }
 
-// ─── Toyota CRM Panel ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB: ANALYTICS
+// ═══════════════════════════════════════════════════════════════════════════
 
-function ToyotaCRMPanel() {
+function AnalyticsPage() {
+  const stats = useHyperXStore((s) => s.stats)
   const leads = useHyperXStore((s) => s.leads)
-  const crmLeads = leads.filter((l) => l.status === 'crm_transferred')
-  const junkLeads = leads.filter((l) => l.status === 'junk')
-  const failedLeads = leads.filter((l) => l.status === 'failed')
+  const flow = stats.flowNodes
+  const total = stats.totalLeadsReceived || 1
+
+  const connected = leads.filter(l => ['connected','conversation','interested','not_interested','call_later','whatsapp_sent','whatsapp_yes','whatsapp_no','crm_transferred','junk'].includes(l.status)).length
+  const interested = stats.totalInterested
+  const junk = stats.totalJunk + stats.totalFailed
+  const active = stats.totalCallsActive
+
+  // Funnel data
+  const funnelData = [
+    { label: 'Total Leads', count: stats.totalLeadsReceived, pct: 100, color: 'bg-amber-400' },
+    { label: 'Calls Connected', count: connected, pct: Math.round((connected/total)*100), color: 'bg-amber-500' },
+    { label: 'Interested (YES)', count: interested, pct: Math.round((interested/total)*100), color: 'bg-green-500' },
+    { label: 'In Toyota CRM', count: flow.crm_transferred, pct: Math.round((flow.crm_transferred/total)*100), color: 'bg-green-600' },
+    { label: 'Junk / No Interest', count: junk, pct: Math.round((junk/total)*100), color: 'bg-red-500' },
+  ]
+
+  // Donut data
+  const interestedPct = stats.totalLeadsReceived > 0 ? interested / stats.totalLeadsReceived : 0
+  const junkPct = stats.totalLeadsReceived > 0 ? junk / stats.totalLeadsReceived : 0
+  const activePct = stats.totalLeadsReceived > 0 ? active / stats.totalLeadsReceived : 0
+
+  // Simulated hourly data
+  const hourlyData = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10 + stats.totalCallsMade / 8))
+  const hourlyMax = Math.max(...hourlyData, 1)
+  const hours = ['9am','10am','11am','12pm','1pm','2pm','3pm','4pm']
+
+  // Attempt success rates
+  const attemptRates = [
+    { label: '1st Attempt', time: '', rate: '55%', color: 'text-amber-400' },
+    { label: '2nd (+2hr)', time: '', rate: '42%', color: 'text-orange-400' },
+    { label: '3rd (+6hr)', time: '', rate: '31%', color: 'text-blue-400' },
+    { label: '4th (+30hr)', time: '', rate: '22%', color: 'text-red-400' },
+    { label: 'WA Response', time: '', rate: '28%', color: 'text-green-400' },
+  ]
 
   return (
-    <div className="h-full flex flex-col gap-3">
-      {/* Toyota CRM */}
-      <div className="flex-1 flex flex-col bg-slate-900/95 border border-emerald-500/20 rounded-xl overflow-hidden">
-        <div className="p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-b border-green-500/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-green-300">TOYOTA CRM</h2>
-                <p className="text-[10px] text-green-400/60">Qualified Leads</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <PulseDot color="bg-green-400" />
-              <span className="text-lg font-bold text-green-400">{crmLeads.length}</span>
-            </div>
-          </div>
+    <div className="p-6 max-w-6xl mx-auto space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-xl font-extrabold">Campaign Analytics</div>
+          <div className="text-xs text-slate-500">Toyota Lead Qualification — HyperX Platform</div>
         </div>
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1.5">
-            <AnimatePresence mode="popLayout">
-              {crmLeads.map((lead) => (
-                <motion.div key={lead.id} layout
-                  initial={{ opacity: 0, x: 30, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  className="rounded-lg border border-green-500/20 bg-green-500/5 p-2.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-green-300">{lead.name}</span>
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
-                  </div>
-                  <div className="text-[10px] text-slate-400">{lead.phone}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[10px] text-cyan-400/80 flex items-center gap-1">
-                      <Target className="h-2.5 w-2.5" /> Toyota {lead.selectedCar}
-                    </span>
-                    <span className="text-[10px] text-green-400/60">CarWale.com</span>
-                  </div>
-                  {lead.callDuration > 0 && (
-                    <div className="text-[10px] text-slate-500 mt-1">Call: {lead.callDuration}s | {lead.attemptCount} attempt(s)</div>
-                  )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {crmLeads.length === 0 && (
-              <div className="text-center text-slate-600 text-xs py-8">
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-slate-700" /> No qualified leads yet
-              </div>
-            )}
-          </div>
-        </ScrollArea>
       </div>
 
-      {/* Junk Bin */}
-      <div className="h-44 flex flex-col bg-slate-900/95 border border-red-500/20 rounded-xl overflow-hidden">
-        <div className="p-2.5 bg-gradient-to-r from-red-600/20 to-orange-600/20 border-b border-red-500/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Trash2 className="h-4 w-4 text-red-400" />
-              <h2 className="text-xs font-bold text-red-300">JUNK / FAILED LEADS</h2>
-            </div>
-            <Badge variant="outline" className="text-[9px] border-red-500/30 text-red-400 bg-red-500/10">
-              {junkLeads.length + failedLeads.length}
-            </Badge>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { label: 'Total Leads', num: stats.totalLeadsReceived, color: 'text-amber-400', sub: '↑ from aggregator' },
+          { label: 'Qualified (CRM)', num: stats.totalInterested, color: 'text-green-400', sub: `${stats.conversionRate.toFixed(0)}% conversion` },
+          { label: 'Junk / Disqualified', num: junk, color: 'text-red-400', sub: `${stats.totalLeadsReceived > 0 ? Math.round((junk/stats.totalLeadsReceived)*100) : 0}% of total` },
+          { label: 'In Progress', num: active, color: 'text-blue-400', sub: 'being worked' },
+        ].map(kpi => (
+          <div key={kpi.label} className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider">{kpi.label}</div>
+            <div className={`text-2xl font-extrabold ${kpi.color} mt-1`}>{kpi.num}</div>
+            <div className="text-[11px] text-green-400 mt-0.5">{kpi.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Funnel */}
+        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Lead Disposition Funnel</div>
+          <div className="space-y-2">
+            {funnelData.map(step => (
+              <div key={step.label} className="flex items-center gap-3">
+                <div className="text-[10px] text-slate-400 min-w-[90px]">{step.label}</div>
+                <div className="flex-1 bg-[#1a1a26] rounded h-5 overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded ${step.color} flex items-center pl-2 text-[10px] font-semibold text-black`}
+                    animate={{ width: `${Math.max(step.pct, 2)}%` }}
+                    transition={{ duration: 0.8 }}
+                  >
+                    {step.count > 0 ? step.count : ''}
+                  </motion.div>
+                </div>
+                <div className="text-[10px] text-slate-500 min-w-[28px] text-right">{step.count}</div>
+              </div>
+            ))}
           </div>
         </div>
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-0.5">
-            <AnimatePresence mode="popLayout">
-              {[...junkLeads, ...failedLeads].map((lead) => (
-                <motion.div key={lead.id} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 0.6, y: 0 }} exit={{ opacity: 0 }}
-                  className="flex items-center justify-between rounded-md border border-red-500/10 bg-red-500/5 px-2 py-1">
-                  <div className="flex items-center gap-1.5">
-                    <XCircle className="h-3 w-3 text-red-400/60" />
-                    <span className="text-[10px] text-slate-400">{lead.name}</span>
-                  </div>
-                  <span className="text-[9px] text-red-400/60">{lead.status === 'junk' ? 'JUNK' : 'FAILED'}</span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+
+        {/* Donut */}
+        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Outcome Distribution</div>
+          <div className="flex items-center gap-6">
+            <svg width="110" height="110" viewBox="0 0 110 110" className="flex-shrink-0">
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#1a1a26" strokeWidth="18" />
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#22c55e" strokeWidth="18"
+                strokeDasharray={`${Math.round(interestedPct * 251)} ${Math.round((1-interestedPct) * 251)}`}
+                strokeDashoffset="63"
+                style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#ef4444" strokeWidth="18"
+                strokeDasharray={`${Math.round(junkPct * 251)} ${Math.round((1-junkPct) * 251)}`}
+                strokeDashoffset={63 - Math.round(interestedPct * 251)}
+                style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+              <circle cx="55" cy="55" r="40" fill="none" stroke="#60a5fa" strokeWidth="18"
+                strokeDasharray={`${Math.round(activePct * 251)} ${Math.round((1-activePct) * 251)}`}
+                strokeDashoffset={63 - Math.round((interestedPct + junkPct) * 251)}
+                style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+              <text x="55" y="58" textAnchor="middle" fontSize="14" fontWeight="800" fill="#f5a623">
+                {stats.totalLeadsReceived > 0 ? Math.round((interested/stats.totalLeadsReceived)*100) : 0}%
+              </text>
+            </svg>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-[11px]">
+                <div className="w-2 h-2 rounded-full bg-green-500" /> Interested ({interested})
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <div className="w-2 h-2 rounded-full bg-red-500" /> Junk ({junk})
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <div className="w-2 h-2 rounded-full bg-blue-400" /> In Progress ({active})
+              </div>
+            </div>
           </div>
-        </ScrollArea>
+        </div>
+      </div>
+
+      {/* Bar Chart */}
+      <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Call Volume by Hour</div>
+        <div className="flex items-end gap-2 h-28">
+          {hourlyData.map((v, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div className="text-[9px] font-semibold text-slate-400">{v}</div>
+              <motion.div
+                className="w-full bg-amber-400 rounded-t"
+                style={{ opacity: 0.5 + i * 0.07 }}
+                animate={{ height: `${Math.round((v / hourlyMax) * 100)}%` }}
+                transition={{ duration: 0.5 }}
+              />
+              <div className="text-[9px] text-slate-500">{hours[i]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Retry Attempt Success Rate */}
+      <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Retry Attempt Success Rate</div>
+        <div className="flex gap-4">
+          {attemptRates.map(a => (
+            <div key={a.label} className="flex-1 bg-[#1a1a26] rounded-lg p-3 text-center">
+              <div className="text-[10px] text-slate-500 mb-1">{a.label}</div>
+              <div className={`text-xl font-extrabold ${a.color}`}>{a.rate}</div>
+              <div className="text-[9px] text-slate-500">pick rate</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════════════════════
 
 export default function HyperXDashboard() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'platform' | 'analytics'>('platform')
   const { startSimulation, stopSimulation, isSimulating, timeJump } = useSimulation()
   const resetAll = useHyperXStore((s) => s.resetAll)
+  const simTime = useHyperXStore((s) => s.simTime)
+  const speed = useHyperXStore((s) => s.simulationSpeed)
+  const setSpeed = useHyperXStore((s) => s.setSimulationSpeed)
   const [hasStarted, setHasStarted] = useState(false)
 
   const handleStart = () => {
@@ -906,65 +597,84 @@ export default function HyperXDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      {/* Top Header */}
-      <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-[1920px] mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">HYPER X</h1>
-                <p className="text-[10px] text-slate-500">AI Voice Bot Lead Qualification System | CarWale.com</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {!isSimulating ? (
-                <Button size="sm" onClick={handleStart}
-                  className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs">
-                  <Play className="h-3 w-3 mr-1" /> Start Simulation
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline" onClick={stopSimulation}
-                  className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 text-xs">
-                  <Pause className="h-3 w-3 mr-1" /> Pause
-                </Button>
-              )}
-              {hasStarted && (
-                <Button size="sm" variant="outline" onClick={handleReset}
-                  className="border-slate-600/30 text-slate-400 hover:bg-slate-700/50 text-xs">
-                  <RotateCcw className="h-3 w-3 mr-1" /> Reset
-                </Button>
-              )}
-            </div>
-          </div>
-          <TimeJumpBar />
+    <div className="min-h-screen bg-[#0a0a0f] text-[#f0ede8]">
+      {/* NAV */}
+      <nav className="flex items-center justify-between px-7 py-3 bg-[#12121a] border-b border-amber-500/15 sticky top-0 z-50">
+        <div className="flex items-center gap-2.5 text-xl font-bold text-amber-400">
+          <Bolt className="h-5 w-5" /> HyperX <span className="text-[#f0ede8] font-light ml-1">× Toyota</span>
         </div>
-      </header>
 
-      <main className="max-w-[1920px] mx-auto p-3 space-y-3">
-        <StatsBar />
-        <AnimatedFlowchart />
-
-        {/* Main panels: Aggregator | Live Conversation | CRM+Junk */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3" style={{ minHeight: 'calc(100vh - 500px)' }}>
-          <div className="lg:col-span-3">
-            <AggregatorPanel />
-          </div>
-          <div className="lg:col-span-6">
-            <LiveConversationPanel />
-          </div>
-          <div className="lg:col-span-3">
-            <ToyotaCRMPanel />
-          </div>
+        <div className="flex gap-1">
+          {(['overview', 'platform', 'analytics'] as const).map(tab => (
+            <button key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-1.5 rounded-md text-[13px] transition-all ${
+                activeTab === tab ? 'bg-amber-500 text-black font-semibold'
+                : 'text-[#a09e9a] hover:bg-[#1a1a26] hover:text-white'
+              }`}>
+              {tab === 'overview' ? 'Overview' : tab === 'platform' ? 'Live Platform' : 'Analytics'}
+            </button>
+          ))}
         </div>
-      </main>
 
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl" />
+        <div className="flex items-center gap-3">
+          {/* Sim controls */}
+          <div className="flex items-center gap-1 bg-[#1a1a26] border border-amber-500/15 rounded-lg px-2 py-1">
+            <Clock className="h-3 w-3 text-amber-400" />
+            <span className="text-[10px] text-slate-400">{simTime.toFixed(1)}h</span>
+          </div>
+
+          {/* Time jumps */}
+          {[2, 4, 24, 48].map(hrs => (
+            <button key={hrs} onClick={() => timeJump(hrs)}
+              className={`text-[10px] px-2 py-1 rounded-md font-semibold transition-all ${
+                simTime >= hrs ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black'
+                : 'bg-[#1a1a26] border border-amber-500/15 text-slate-300 hover:bg-[#22223a]'
+              }`}>
+              {hrs}h
+            </button>
+          ))}
+
+          <div className="flex items-center gap-0.5 bg-[#1a1a26] border border-amber-500/15 rounded-lg px-1.5 py-1">
+            {[1,2,4,8].map(s => (
+              <button key={s} onClick={() => setSpeed(s)}
+                className={`text-[10px] px-1.5 py-0.5 rounded transition-all ${
+                  speed === s ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-slate-500 hover:text-slate-300'
+                }`}>{s}x</button>
+            ))}
+          </div>
+
+          {/* Live badge */}
+          <div className="bg-green-500/15 text-green-400 border border-green-500/30 rounded-full px-3 py-1 text-[11px] font-semibold flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> LIVE DEMO
+          </div>
+
+          {!isSimulating ? (
+            <button onClick={handleStart}
+              className="bg-amber-500 text-black rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-400 transition-all">
+              <Play className="h-3.5 w-3.5" /> Start Simulation
+            </button>
+          ) : (
+            <button onClick={stopSimulation}
+              className="bg-[#1a1a26] border border-amber-500/30 text-amber-400 rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-1.5 hover:bg-[#22223a] transition-all">
+              <Pause className="h-3.5 w-3.5" /> Pause
+            </button>
+          )}
+
+          {hasStarted && (
+            <button onClick={handleReset}
+              className="bg-[#1a1a26] border border-slate-600/30 text-slate-400 rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 hover:bg-[#22223a] transition-all">
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* PAGE CONTENT */}
+      <div className="max-w-[1400px] mx-auto">
+        {activeTab === 'overview' && <OverviewPage />}
+        {activeTab === 'platform' && <LivePlatformPage />}
+        {activeTab === 'analytics' && <AnalyticsPage />}
       </div>
     </div>
   )
