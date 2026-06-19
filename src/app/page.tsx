@@ -394,7 +394,7 @@ function LivePlatformPage() {
   }, [activeLeads, selectedLeadId, setSelected])
 
   return (
-    <div className="p-3 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+    <div className="p-3 flex flex-col pb-8">
       {/* Animated Flowchart — compact */}
       <div className="flex-shrink-0 mb-3">
         <AnimatedFlowchart />
@@ -425,8 +425,8 @@ function LivePlatformPage() {
         </div>
       </div>
 
-      {/* 3-Column Grid — fills remaining space */}
-      <div className="flex-1 grid grid-cols-[240px_1fr_200px] gap-3 min-h-0 overflow-hidden">
+      {/* 3-Column Grid — scrollable content */}
+      <div className="grid grid-cols-[240px_1fr_200px] gap-3 min-h-[600px]">
         {/* LEFT: Aggregator */}
         <div className="bg-[#12121a] border border-amber-500/15 rounded-xl flex flex-col overflow-hidden">
           <div className="p-3 border-b border-amber-500/15 flex items-center justify-between flex-shrink-0">

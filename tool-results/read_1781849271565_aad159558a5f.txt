@@ -1,0 +1,417 @@
+   410→          {[
+   411→            { num: stats.totalCallsActive, label: 'Active', color: 'text-amber-400' },
+   412→            { num: stats.totalCallsMade, label: 'Total', color: 'text-amber-400' },
+   413→            { num: leads.filter(l => ['ringing','calling'].includes(l.status)).length, label: 'Ringing', color: 'text-yellow-400' },
+   414→            { num: leads.filter(l => ['connected','conversation'].includes(l.status)).length, label: 'On Call', color: 'text-green-400' },
+   415→            { num: leads.filter(l => l.status === 'whatsapp_sent').length, label: 'WhatsApp', color: 'text-emerald-400' },
+   416→            { num: stats.totalInterested, label: 'CRM', color: 'text-green-400' },
+   417→            { num: stats.totalJunk, label: 'Junk', color: 'text-red-400' },
+   418→            { num: `${stats.conversionRate.toFixed(0)}%`, label: 'Conv.', color: 'text-amber-400' },
+   419→          ].map(m => (
+   420→            <div key={m.label} className="text-center">
+   421→              <div className={`text-base font-extrabold ${m.color}`}>{m.num}</div>
+   422→              <div className="text-[7px] text-slate-500 uppercase">{m.label}</div>
+   423→            </div>
+   424→          ))}
+   425→        </div>
+   426→      </div>
+   427→
+   428→      {/* 3-Column Grid — fills remaining space */}
+   429→      <div className="flex-1 grid grid-cols-[240px_1fr_200px] gap-3 min-h-0 overflow-hidden">
+   430→        {/* LEFT: Aggregator */}
+   431→        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl flex flex-col overflow-hidden">
+   432→          <div className="p-3 border-b border-amber-500/15 flex items-center justify-between flex-shrink-0">
+   433→            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Database className="h-3.5 w-3.5" /> CarWale.com</span>
+   434→            <span className="bg-amber-500 text-black rounded-full px-2 py-0.5 text-[10px] font-bold">{activeLeads.length}</span>
+   435→          </div>
+   436→          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+   437→            <AnimatePresence mode="popLayout">
+   438→              {leads.slice(0, 30).map(lead => (
+   439→                <motion.div key={lead.id} layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+   440→                  onClick={() => setSelected(lead.id === selectedLeadId ? null : lead.id)}
+   441→                  className={`bg-[#1a1a26] border rounded-lg p-2.5 cursor-pointer transition-all flex items-center gap-2.5 ${
+   442→                    lead.id === selectedLeadId ? 'border-amber-500/40 bg-amber-500/8' : 'border-amber-500/10 hover:border-amber-500/25'
+   443→                  }`}>
+   444→                  <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-[11px] font-bold text-amber-400 flex-shrink-0">
+   445→                    {lead.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+   446→                  </div>
+   447→                  <div className="flex-1 min-w-0">
+   448→                    <div className="text-[11px] font-semibold text-white truncate">{lead.name}</div>
+   449→                    <div className="text-[9px] text-slate-500">{lead.phone}</div>
+   450→                  </div>
+   451→                  <div className="flex flex-col items-end gap-1">
+   452→                    <div className={`w-2 h-2 rounded-full ${
+   453→                      ['calling','ringing'].includes(lead.status) ? 'bg-amber-400 animate-pulse'
+   454→                      : ['connected','conversation'].includes(lead.status) ? 'bg-green-400'
+   455→                      : ['interested','whatsapp_sent','whatsapp_yes'].includes(lead.status) ? 'bg-green-500'
+   456→                      : ['not_interested','whatsapp_no'].includes(lead.status) ? 'bg-red-400'
+   457→                      : ['no_answer','call_later'].includes(lead.status) ? 'bg-orange-400'
+   458→                      : lead.status === 'junk' ? 'bg-red-500' : 'bg-slate-500'
+   459→                    }`} />
+   460→                    <span className="text-[8px] text-slate-500 text-right">{getStatusLabel(lead.status)}</span>
+   461→                  </div>
+   462→                </motion.div>
+   463→              ))}
+   464→            </AnimatePresence>
+   465→          </div>
+   466→        </div>
+   467→
+   468→        {/* CENTER: Call Stream with Chat */}
+   469→        <div className="flex flex-col gap-3 min-h-0">
+   470→          {/* Call Cards */}
+   471→          <div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+   472→            <AnimatePresence mode="popLayout">
+   473→              {activeLeads.map(lead => {
+   474→                const isOnCall = ['calling','ringing','connected','conversation'].includes(lead.status)
+   475→                const lastBotMsg = [...lead.chatMessages].reverse().find(m => m.speaker === 'bot')
+   476→                const lastCustMsg = [...lead.chatMessages].reverse().find(m => m.speaker === 'customer')
+   477→
+   478→                return (
+   479→                  <motion.div key={lead.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+   480→                    onClick={() => setSelected(lead.id === selectedLeadId ? null : lead.id)}
+   481→                    className={`bg-[#12121a] border rounded-xl p-3 cursor-pointer transition-all ${
+   482→                      lead.id === selectedLeadId ? 'border-amber-500/40' : isOnCall ? 'border-amber-500/20 hover:border-amber-500/35' : 'border-slate-700/25 hover:border-slate-600/40'
+   483→                    }`}>
+   484→                    <div className="flex items-center justify-between mb-2">
+   485→                      <span className="text-[13px] font-semibold text-white">{lead.name}</span>
+   486→                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+   487→                        isOnCall ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+   488→                        : lead.status === 'interested' ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+   489→                        : lead.status === 'whatsapp_sent' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+   490→                        : ['no_answer','call_later'].includes(lead.status) ? 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+   491→                        : 'bg-slate-700/30 text-slate-400 border border-slate-600/20'
+   492→                      }`}>
+   493→                        {isOnCall && <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse mr-1" />}
+   494→                        {getStatusLabel(lead.status)}
+   495→                      </span>
+   496→                    </div>
+   497→
+   498→                    {/* Script box */}
+   499→                    {(lastBotMsg || lastCustMsg) && (
+   500→                      <div className="bg-[#1a1a26] rounded-md px-3 py-2 text-[11px] text-slate-300 border-l-2 border-amber-500/30 leading-relaxed mb-2">
+   501→                        {lastCustMsg ? (
+   502→                          <><div className="text-[9px] uppercase font-bold text-green-400 tracking-wider mb-1">Customer</div>{lastCustMsg.text}</>
+   503→                        ) : lastBotMsg ? (
+   504→                          <><div className="text-[9px] uppercase font-bold text-amber-400 tracking-wider mb-1">HyperX Bot</div>{lastBotMsg.text}</>
+   505→                        ) : null}
+   506→                      </div>
+   507→                    )}
+   508→
+   509→                    {/* Full chat for selected lead */}
+   510→                    {lead.id === selectedLeadId && lead.chatMessages.length > 0 && (
+   511→                      <div ref={scrollRef} className="max-h-48 overflow-y-auto space-y-2 mt-2 bg-[#0a0a0f]/60 rounded-lg p-3">
+   512→                        {lead.chatMessages.map((msg, i) => (
+   513→                          <div key={msg.id} className={msg.speaker === 'system' ? 'text-center' : 'flex gap-2'}>
+   514→                            {msg.speaker === 'system' ? (
+   515→                              <span className="text-[9px] text-slate-500 bg-slate-800/60 px-3 py-0.5 rounded-full">{msg.text}</span>
+   516→                            ) : (
+   517→                              <>
+   518→                                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center border ${
+   519→                                  msg.speaker === 'bot' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-green-500/20 border-green-500/30 text-green-400'
+   520→                                }`}>
+   521→                                  {msg.speaker === 'bot' ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
+   522→                                </div>
+   523→                                <div className={`max-w-[85%] rounded-lg px-3 py-1.5 ${
+   524→                                  msg.speaker === 'bot' ? 'bg-amber-900/20 border border-amber-500/10 text-amber-50 rounded-tl-sm' : 'bg-slate-700/40 border border-slate-600/20 text-slate-200 rounded-tr-sm'
+   525→                                }`}>
+   526→                                  <div className={`text-[9px] font-bold mb-0.5 ${msg.speaker === 'bot' ? 'text-amber-400' : 'text-green-400'}`}>
+   527→                                    {msg.speaker === 'bot' ? 'HyperX Bot' : lead.name.split(' ')[0]}
+   528→                                  </div>
+   529→                                  <div className="text-[12px] leading-relaxed">{msg.text}</div>
+   530→                                </div>
+   531→                              </>
+   532→                            )}
+   533→                          </div>
+   534→                        ))}
+   535→                        {['ringing','calling'].includes(lead.status) && (
+   536→                          <div className="flex items-center gap-1.5 text-yellow-400 text-[11px] justify-center py-1">
+   537→                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+   538→                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+   539→                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+   540→                            <span className="ml-1">Ringing...</span>
+   541→                          </div>
+   542→                        )}
+   543→                        {lead.status === 'conversation' && (
+   544→                          <div className="flex items-center gap-1.5 text-green-400 text-[11px] justify-center py-1">
+   545→                            <Volume2 className="h-3 w-3 animate-pulse" /> Conversation in progress...
+   546→                          </div>
+   547→                        )}
+   548→                      </div>
+   549→                    )}
+   550→
+   551→                    <div className="flex items-center gap-3 text-[10px] text-slate-500 mt-2">
+   552→                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Attempt {lead.attemptCount}/{lead.maxAttempts}</span>
+   553→                      <div className="flex gap-1">
+   554→                        {[1,2,3,4].map(i => (
+   555→                          <div key={i} className={`w-1.5 h-1.5 rounded-full ${
+   556→                            i < lead.attemptCount ? 'bg-amber-400' : i === lead.attemptCount && isOnCall ? 'bg-amber-400 animate-pulse' : 'bg-amber-500/15'
+   557→                          }`} />
+   558→                        ))}
+   559→                      </div>
+   560→                      <span className="ml-auto flex items-center gap-1"><Phone className="h-3 w-3" /> {lead.phone}</span>
+   561→                    </div>
+   562→                    {isOnCall && (
+   563→                      <div className="h-0.5 bg-slate-800 rounded mt-2 overflow-hidden">
+   564→                        <motion.div className="h-full bg-amber-400 rounded" animate={{ width: ['0%', '100%'] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
+   565→                      </div>
+   566→                    )}
+   567→                  </motion.div>
+   568→                )
+   569→              })}
+   570→            </AnimatePresence>
+   571→            {activeLeads.length === 0 && (
+   572→              <div className="text-center text-slate-600 text-xs py-16"><Phone className="h-10 w-10 mx-auto mb-2 text-slate-700" /> Waiting for leads...</div>
+   573→            )}
+   574→          </div>
+   575→        </div>
+   576→
+   577→        {/* RIGHT: CRM + Junk */}
+   578→        <div className="flex flex-col gap-3 min-h-0">
+   579→          <div className="bg-[#12121a] border border-red-500/20 rounded-xl p-3 text-center flex-shrink-0">
+   580→            <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider flex items-center justify-center gap-1.5 mb-1">
+   581→              <Trash2 className="h-3.5 w-3.5" /> Junk Bin
+   582→            </div>
+   583→            <div className="text-3xl font-extrabold text-red-400">{stats.totalJunk + stats.totalFailed}</div>
+   584→            <div className="text-[9px] text-slate-500">disqualified leads</div>
+   585→            <div className="mt-2 space-y-1 max-h-16 overflow-y-auto">
+   586→              {junkLeads.slice(0, 8).map(l => (
+   587→                <div key={l.id} className="bg-red-500/10 border border-red-500/20 rounded px-1.5 py-0.5 text-[9px] text-red-400 flex items-center gap-1">
+   588→                  <XCircle className="h-2.5 w-2.5" /> {l.name.split(' ')[0]}
+   589→                </div>
+   590→              ))}
+   591→            </div>
+   592→          </div>
+   593→          <div className="flex-1 bg-[#12121a] border border-green-500/25 rounded-xl flex flex-col overflow-hidden min-h-0">
+   594→            <div className="bg-green-500/8 p-3 border-b border-green-500/15 flex items-center justify-between flex-shrink-0">
+   595→              <div>
+   596→                <div className="text-[11px] font-bold text-green-400 uppercase tracking-wider flex items-center gap-1"><Car className="h-3.5 w-3.5" /> Toyota CRM</div>
+   597→                <div className="text-[9px] text-slate-500">Qualified Leads</div>
+   598→              </div>
+   599→              <div className="text-right">
+   600→                <div className="text-xl font-extrabold text-green-400">{crmLeads.length}</div>
+   601→                <div className="text-[9px] text-slate-500">interested</div>
+   602→              </div>
+   603→            </div>
+   604→            <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+   605→              <AnimatePresence mode="popLayout">
+   606→                {crmLeads.map(lead => (
+   607→                  <motion.div key={lead.id} layout initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+   608→                    className="bg-green-500/7 border border-green-500/20 rounded-lg px-2.5 py-2">
+   609→                    <div className="text-[11px] font-semibold text-white">{lead.name}</div>
+   610→                    <div className="text-[9px] text-slate-500">{lead.phone}</div>
+   611→                    <span className="inline-block bg-green-500/15 text-green-400 rounded px-1.5 py-0.5 text-[9px] font-semibold mt-1">✓ Interested</span>
+   612→                  </motion.div>
+   613→                ))}
+   614→              </AnimatePresence>
+   615→            </div>
+   616→          </div>
+   617→        </div>
+   618→      </div>
+   619→    </div>
+   620→  )
+   621→}
+   622→
+   623→// ═══════════════════════════════════════════════════════════════════════════
+   624→// TAB: ANALYTICS
+   625→// ═══════════════════════════════════════════════════════════════════════════
+   626→
+   627→function AnalyticsPage() {
+   628→  const stats = useHyperXStore((s) => s.stats)
+   629→  const leads = useHyperXStore((s) => s.leads)
+   630→  const flow = stats.flowNodes
+   631→  const total = stats.totalLeadsReceived || 1
+   632→  const connected = leads.filter(l => ['connected','conversation','interested','not_interested','call_later','whatsapp_sent','whatsapp_yes','whatsapp_no','crm_transferred','junk'].includes(l.status)).length
+   633→  const interested = stats.totalInterested
+   634→  const junk = stats.totalJunk + stats.totalFailed
+   635→  const active = stats.totalCallsActive
+   636→  const interestedPct = stats.totalLeadsReceived > 0 ? interested / stats.totalLeadsReceived : 0
+   637→  const junkPct = stats.totalLeadsReceived > 0 ? junk / stats.totalLeadsReceived : 0
+   638→  const activePct = stats.totalLeadsReceived > 0 ? active / stats.totalLeadsReceived : 0
+   639→  const hourlyData = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10 + stats.totalCallsMade / 8))
+   640→  const hourlyMax = Math.max(...hourlyData, 1)
+   641→  const hours = ['9am','10am','11am','12pm','1pm','2pm','3pm','4pm']
+   642→  const funnelData = [
+   643→    { label: 'Total Leads', count: stats.totalLeadsReceived, pct: 100, color: 'bg-amber-400' },
+   644→    { label: 'Calls Connected', count: connected, pct: Math.round((connected/total)*100), color: 'bg-amber-500' },
+   645→    { label: 'Interested (YES)', count: interested, pct: Math.round((interested/total)*100), color: 'bg-green-500' },
+   646→    { label: 'In Toyota CRM', count: flow.crm_transferred, pct: Math.round((flow.crm_transferred/total)*100), color: 'bg-green-600' },
+   647→    { label: 'Junk / No Interest', count: junk, pct: Math.round((junk/total)*100), color: 'bg-red-500' },
+   648→  ]
+   649→
+   650→  return (
+   651→    <div className="p-6 max-w-6xl mx-auto space-y-5">
+   652→      <div className="flex items-center justify-between">
+   653→        <div>
+   654→          <div className="text-xl font-extrabold">Campaign Analytics</div>
+   655→          <div className="text-xs text-slate-500">Toyota Lead Qualification — HyperX Platform</div>
+   656→        </div>
+   657→      </div>
+   658→      <div className="grid grid-cols-4 gap-3">
+   659→        {[
+   660→          { label: 'Total Leads', num: stats.totalLeadsReceived, color: 'text-amber-400', sub: '↑ from aggregator' },
+   661→          { label: 'Qualified (CRM)', num: stats.totalInterested, color: 'text-green-400', sub: `${stats.conversionRate.toFixed(0)}% conversion` },
+   662→          { label: 'Junk / Disqualified', num: junk, color: 'text-red-400', sub: `${stats.totalLeadsReceived > 0 ? Math.round((junk/stats.totalLeadsReceived)*100) : 0}% of total` },
+   663→          { label: 'In Progress', num: active, color: 'text-blue-400', sub: 'being worked' },
+   664→        ].map(kpi => (
+   665→          <div key={kpi.label} className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+   666→            <div className="text-[10px] text-slate-500 uppercase tracking-wider">{kpi.label}</div>
+   667→            <div className={`text-2xl font-extrabold ${kpi.color} mt-1`}>{kpi.num}</div>
+   668→            <div className="text-[11px] text-green-400 mt-0.5">{kpi.sub}</div>
+   669→          </div>
+   670→        ))}
+   671→      </div>
+   672→      <div className="grid grid-cols-2 gap-4">
+   673→        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+   674→          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Lead Disposition Funnel</div>
+   675→          <div className="space-y-2">
+   676→            {funnelData.map(step => (
+   677→              <div key={step.label} className="flex items-center gap-3">
+   678→                <div className="text-[10px] text-slate-400 min-w-[90px]">{step.label}</div>
+   679→                <div className="flex-1 bg-[#1a1a26] rounded h-5 overflow-hidden">
+   680→                  <motion.div className={`h-full rounded ${step.color} flex items-center pl-2 text-[10px] font-semibold text-black`}
+   681→                    animate={{ width: `${Math.max(step.pct, 2)}%` }} transition={{ duration: 0.8 }}>
+   682→                    {step.count > 0 ? step.count : ''}
+   683→                  </motion.div>
+   684→                </div>
+   685→                <div className="text-[10px] text-slate-500 min-w-[28px] text-right">{step.count}</div>
+   686→              </div>
+   687→            ))}
+   688→          </div>
+   689→        </div>
+   690→        <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+   691→          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Outcome Distribution</div>
+   692→          <div className="flex items-center gap-6">
+   693→            <svg width="110" height="110" viewBox="0 0 110 110" className="flex-shrink-0">
+   694→              <circle cx="55" cy="55" r="40" fill="none" stroke="#1a1a26" strokeWidth="18" />
+   695→              <circle cx="55" cy="55" r="40" fill="none" stroke="#22c55e" strokeWidth="18"
+   696→                strokeDasharray={`${Math.round(interestedPct * 251)} ${Math.round((1-interestedPct) * 251)}`}
+   697→                strokeDashoffset="63" style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+   698→              <circle cx="55" cy="55" r="40" fill="none" stroke="#ef4444" strokeWidth="18"
+   699→                strokeDasharray={`${Math.round(junkPct * 251)} ${Math.round((1-junkPct) * 251)}`}
+   700→                strokeDashoffset={63 - Math.round(interestedPct * 251)}
+   701→                style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+   702→              <circle cx="55" cy="55" r="40" fill="none" stroke="#60a5fa" strokeWidth="18"
+   703→                strokeDasharray={`${Math.round(activePct * 251)} ${Math.round((1-activePct) * 251)}`}
+   704→                strokeDashoffset={63 - Math.round((interestedPct + junkPct) * 251)}
+   705→                style={{ transition: 'stroke-dasharray 0.8s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
+   706→              <text x="55" y="58" textAnchor="middle" fontSize="14" fontWeight="800" fill="#f5a623">
+   707→                {stats.totalLeadsReceived > 0 ? Math.round((interested/stats.totalLeadsReceived)*100) : 0}%
+   708→              </text>
+   709→            </svg>
+   710→            <div className="space-y-2">
+   711→              <div className="flex items-center gap-2 text-[11px]"><div className="w-2 h-2 rounded-full bg-green-500" /> Interested ({interested})</div>
+   712→              <div className="flex items-center gap-2 text-[11px]"><div className="w-2 h-2 rounded-full bg-red-500" /> Junk ({junk})</div>
+   713→              <div className="flex items-center gap-2 text-[11px]"><div className="w-2 h-2 rounded-full bg-blue-400" /> In Progress ({active})</div>
+   714→            </div>
+   715→          </div>
+   716→        </div>
+   717→      </div>
+   718→      <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+   719→        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Call Volume by Hour</div>
+   720→        <div className="flex items-end gap-2 h-28">
+   721→          {hourlyData.map((v, i) => (
+   722→            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+   723→              <div className="text-[9px] font-semibold text-slate-400">{v}</div>
+   724→              <motion.div className="w-full bg-amber-400 rounded-t" style={{ opacity: 0.5 + i * 0.07 }}
+   725→                animate={{ height: `${Math.round((v / hourlyMax) * 100)}%` }} transition={{ duration: 0.5 }} />
+   726→              <div className="text-[9px] text-slate-500">{hours[i]}</div>
+   727→            </div>
+   728→          ))}
+   729→        </div>
+   730→      </div>
+   731→      <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4">
+   732→        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Retry Attempt Success Rate</div>
+   733→        <div className="flex gap-4">
+   734→          {[
+   735→            { label: '1st Attempt', rate: '55%', color: 'text-amber-400' },
+   736→            { label: '2nd (+2hr)', rate: '42%', color: 'text-orange-400' },
+   737→            { label: '3rd (+6hr)', rate: '31%', color: 'text-blue-400' },
+   738→            { label: '4th (+30hr)', rate: '22%', color: 'text-red-400' },
+   739→            { label: 'WA Response', rate: '28%', color: 'text-green-400' },
+   740→          ].map(a => (
+   741→            <div key={a.label} className="flex-1 bg-[#1a1a26] rounded-lg p-3 text-center">
+   742→              <div className="text-[10px] text-slate-500 mb-1">{a.label}</div>
+   743→              <div className={`text-xl font-extrabold ${a.color}`}>{a.rate}</div>
+   744→              <div className="text-[9px] text-slate-500">pick rate</div>
+   745→            </div>
+   746→          ))}
+   747→        </div>
+   748→      </div>
+   749→    </div>
+   750→  )
+   751→}
+   752→
+   753→// ═══════════════════════════════════════════════════════════════════════════
+   754→// MAIN PAGE
+   755→// ═══════════════════════════════════════════════════════════════════════════
+   756→
+   757→export default function HyperXDashboard() {
+   758→  const [activeTab, setActiveTab] = useState<'overview' | 'platform' | 'analytics'>('platform')
+   759→  const { startSimulation, stopSimulation, isSimulating, timeJump } = useSimulation()
+   760→  const resetAll = useHyperXStore((s) => s.resetAll)
+   761→  const simTime = useHyperXStore((s) => s.simTime)
+   762→  const speed = useHyperXStore((s) => s.simulationSpeed)
+   763→  const setSpeed = useHyperXStore((s) => s.setSimulationSpeed)
+   764→  const [hasStarted, setHasStarted] = useState(false)
+   765→
+   766→  const handleStart = () => { if (!hasStarted) setHasStarted(true); startSimulation() }
+   767→  const handleReset = () => { stopSimulation(); resetAll(); setHasStarted(false) }
+   768→
+   769→  return (
+   770→    <div className="min-h-screen bg-[#0a0a0f] text-[#f0ede8]">
+   771→      <nav className="flex items-center justify-between px-7 py-3 bg-[#12121a] border-b border-amber-500/15 sticky top-0 z-50">
+   772→        <div className="flex items-center gap-2.5 text-xl font-bold text-amber-400">
+   773→          <Bolt className="h-5 w-5" /> HyperX <span className="text-[#f0ede8] font-light ml-1">× Toyota</span>
+   774→        </div>
+   775→        <div className="flex gap-1">
+   776→          {(['overview', 'platform', 'analytics'] as const).map(tab => (
+   777→            <button key={tab} onClick={() => setActiveTab(tab)}
+   778→              className={`px-4 py-1.5 rounded-md text-[13px] transition-all ${
+   779→                activeTab === tab ? 'bg-amber-500 text-black font-semibold' : 'text-[#a09e9a] hover:bg-[#1a1a26] hover:text-white'
+   780→              }`}>
+   781→              {tab === 'overview' ? 'Overview' : tab === 'platform' ? 'Live Platform' : 'Analytics'}
+   782→            </button>
+   783→          ))}
+   784→        </div>
+   785→        <div className="flex items-center gap-2">
+   786→          <div className="flex items-center gap-1 bg-[#1a1a26] border border-amber-500/15 rounded-lg px-2 py-1">
+   787→            <Clock className="h-3 w-3 text-amber-400" /><span className="text-[10px] text-slate-400">{simTime.toFixed(1)}h</span>
+   788→          </div>
+   789→          {[2,4,24,48].map(h => (
+   790→            <button key={h} onClick={() => timeJump(h)}
+   791→              className={`text-[10px] px-2 py-1 rounded-md font-semibold ${simTime >= h ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black' : 'bg-[#1a1a26] border border-amber-500/15 text-slate-300 hover:bg-[#22223a]'}`}>
+   792→              {h}h
+   793→            </button>
+   794→          ))}
+   795→          <div className="flex items-center gap-0.5 bg-[#1a1a26] border border-amber-500/15 rounded-lg px-1.5 py-1">
+   796→            {[1,2,4,8].map(s => (
+   797→              <button key={s} onClick={() => setSpeed(s)}
+   798→                className={`text-[10px] px-1.5 py-0.5 rounded ${speed === s ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-slate-500 hover:text-slate-300'}`}>{s}x</button>
+   799→            ))}
+   800→          </div>
+   801→          <div className="bg-green-500/15 text-green-400 border border-green-500/30 rounded-full px-3 py-1 text-[11px] font-semibold flex items-center gap-1.5">
+   802→            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> LIVE
+   803→          </div>
+   804→          {!isSimulating ? (
+   805→            <button onClick={handleStart} className="bg-amber-500 text-black rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-400">
+   806→              <Play className="h-3.5 w-3.5" /> Start
+   807→            </button>
+   808→          ) : (
+   809→            <button onClick={stopSimulation} className="bg-[#1a1a26] border border-amber-500/30 text-amber-400 rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-1.5 hover:bg-[#22223a]">
+   810→              <Pause className="h-3.5 w-3.5" /> Pause
+   811→            </button>
+   812→          )}
+   813→          {hasStarted && (
+   814→            <button onClick={handleReset} className="bg-[#1a1a26] border border-slate-600/30 text-slate-400 rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 hover:bg-[#22223a]">
+   815→              <RotateCcw className="h-3 w-3" />
+   816→            </button>
+   817→          )}
+   818→        </div>
+   819→      </nav>
+   820→      {activeTab === 'overview' && <OverviewPage />}
+   821→      {activeTab === 'platform' && <LivePlatformPage />}
+   822→      {activeTab === 'analytics' && <AnalyticsPage />}
+   823→    </div>
+   824→  )
+   825→}
+   826→
