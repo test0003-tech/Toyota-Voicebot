@@ -52,10 +52,10 @@ function FlowBox({ icon: Icon, label, sublabel, count, color, glow, pulse }: {
   color: string; glow: string; pulse?: boolean
 }) {
   return (
-    <div className={`relative rounded-xl border ${color} ${glow} px-4 py-3 text-center min-w-[120px] shadow-lg`}>
+    <div className={`relative rounded-xl border ${color} ${glow} px-3 py-2 text-center min-w-[110px] shadow-lg`}>
       {pulse && <div className="absolute -top-1 -right-1"><PulseDot color="bg-amber-400" size="h-1.5 w-1.5" /></div>}
-      <Icon className={`h-5 w-5 mx-auto mb-1 ${color.split(' ')[0]}`} />
-      <div className={`text-2xl font-extrabold ${color.split(' ')[0]} tabular-nums`}>{count}</div>
+      <Icon className={`h-4 w-4 mx-auto mb-0.5 ${color.split(' ')[0]}`} />
+      <div className={`text-xl font-extrabold ${color.split(' ')[0]} tabular-nums`}>{count}</div>
       <div className="text-[11px] text-slate-200 font-semibold mt-0.5">{label}</div>
       {sublabel && <div className="text-[9px] text-slate-400 mt-0.5">{sublabel}</div>}
     </div>
@@ -99,8 +99,8 @@ function AnimatedFlowchart() {
   const noAnswerCount = leads.filter(l => ['no_answer', 'call_later'].includes(l.status)).length
 
   return (
-    <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-4 mb-3">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-[#12121a] border border-amber-500/15 rounded-xl p-3">
+      <div className="flex items-center gap-2 mb-2">
         <Waypoints className="h-4 w-4 text-amber-400" />
         <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Live Process Flow</span>
         <div className="flex-1" />
@@ -153,10 +153,10 @@ function AnimatedFlowchart() {
       </div>
 
       {/* SPLIT: Three outcome columns */}
-      <div className="mt-5 flex items-start justify-center gap-6">
+      <div className="mt-3 flex items-start justify-center gap-4">
         {/* LEFT: No Pickup */}
-        <div className="flex flex-col items-center gap-2 min-w-[140px]">
-          <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">No Pickup</div>
+        <div className="flex flex-col items-center gap-1.5 min-w-[130px]">
+          <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">No Pickup</div>
           <FlowArrow label="no answer" color="text-gray-400" vertical />
           <div className="relative">
             <FlowBox icon={PhoneMissed} label="No Answer" sublabel="or Call Later" count={flow.no_answer + flow.call_later}
@@ -394,17 +394,19 @@ function LivePlatformPage() {
   }, [activeLeads, selectedLeadId, setSelected])
 
   return (
-    <div className="p-3 flex flex-col h-[calc(100vh-64px)]">
-      {/* Animated Flowchart */}
-      <AnimatedFlowchart />
+    <div className="p-3 flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+      {/* Animated Flowchart — compact */}
+      <div className="flex-shrink-0 mb-3">
+        <AnimatedFlowchart />
+      </div>
 
-      {/* HyperX Engine Strip */}
-      <div className="bg-gradient-to-r from-amber-500/10 to-amber-500/4 border border-amber-500/25 rounded-xl p-3 mb-3 flex items-center justify-between flex-shrink-0">
+      {/* HyperX Engine Strip — compact */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-amber-500/10 to-amber-500/4 border border-amber-500/25 rounded-xl px-4 py-2 mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Bolt className="h-5 w-5 text-amber-400" />
-          <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">HyperX Engine</span>
+          <Bolt className="h-4 w-4 text-amber-400" />
+          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">HyperX Engine</span>
         </div>
-        <div className="flex gap-6">
+        <div className="flex gap-5">
           {[
             { num: stats.totalCallsActive, label: 'Active', color: 'text-amber-400' },
             { num: stats.totalCallsMade, label: 'Total', color: 'text-amber-400' },
@@ -416,15 +418,15 @@ function LivePlatformPage() {
             { num: `${stats.conversionRate.toFixed(0)}%`, label: 'Conv.', color: 'text-amber-400' },
           ].map(m => (
             <div key={m.label} className="text-center">
-              <div className={`text-lg font-extrabold ${m.color}`}>{m.num}</div>
-              <div className="text-[8px] text-slate-500 uppercase">{m.label}</div>
+              <div className={`text-base font-extrabold ${m.color}`}>{m.num}</div>
+              <div className="text-[7px] text-slate-500 uppercase">{m.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 3-Column Grid */}
-      <div className="flex-1 grid grid-cols-[240px_1fr_200px] gap-3 min-h-0">
+      {/* 3-Column Grid — fills remaining space */}
+      <div className="flex-1 grid grid-cols-[240px_1fr_200px] gap-3 min-h-0 overflow-hidden">
         {/* LEFT: Aggregator */}
         <div className="bg-[#12121a] border border-amber-500/15 rounded-xl flex flex-col overflow-hidden">
           <div className="p-3 border-b border-amber-500/15 flex items-center justify-between flex-shrink-0">
